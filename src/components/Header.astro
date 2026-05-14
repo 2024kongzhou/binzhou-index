@@ -1,0 +1,85 @@
+---
+const navItems = [
+  { name: '首页', href: '/' },
+  { name: '滨州地名志', href: '/place' },
+  { name: '文章博客', href: '/blog' },
+  { name: '装修教程', href: '/tutorial' },
+  { name: '产品展示', href: '/product' },
+  { name: '小区索引', href: '/community' },
+];
+---
+
+<header class="bg-white shadow-sm">
+  <div class="max-w-7xl mx-auto px-4 py-4">
+    <div class="flex items-center justify-between">
+      <a href="/" class="text-2xl font-bold text-primary">滨州索引</a>
+
+      <nav class="hidden md:flex space-x-8">
+        {navItems.map(item => (
+          <a href={item.href} class="text-gray-700 hover:text-primary transition">
+            {item.name}
+          </a>
+        ))}
+      </nav>
+
+      <div id="weather-calendar" class="text-sm text-gray-600">
+        <!-- 天气和万年历将在这里显示 -->
+      </div>
+    </div>
+  </div>
+</header>
+
+<script>
+  // 加载天气和万年历
+  async function loadWeatherCalendar() {
+    const container = document.getElementById('weather-calendar');
+    if (!container) return;
+
+    try {
+      // 获取日期信息
+      const now = new Date();
+      const lunarDate = await getLunarDate(now);
+      const weather = await getWeather('滨州');
+
+      container.innerHTML = `
+        <div class="flex items-center gap-4">
+          <span>${formatDate(now)}</span>
+          <span>${lunarDate}</span>
+          ${weather ? `<span>${weather}</span>` : ''}
+        </div>
+      `;
+    } catch (e) {
+      console.error('加载天气历法失败:', e);
+    }
+  }
+
+  function formatDate(date: Date) {
+    const options: Intl.DateTimeFormatOptions = {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      weekday: 'long'
+    };
+    return date.toLocaleDateString('zh-CN', options);
+  }
+
+  async function getLunarDate(date: Date) {
+    // 简化版农历计算
+    const cn = ['日', '一', '二', '三', '四', '五', '六', '七', '八', '九', '十'];
+    const month = ['正', '二', '三', '四', '五', '六', '七', '八', '九', '十', '冬', '腊'];
+    return `农历${month[date.getMonth()]}${date.getDate()}日`;
+  }
+
+  async function getWeather(city: string) {
+    try {
+      const res = await fetch(`https://api.qweather.com/v7/weather/now?location=${encodeURIComponent(city)}&key=demo`);
+      if (!res.ok) return null;
+      const data = await res.json();
+      return data.now?.temp ? `${data.now.temp}°C` : null;
+    } catch {
+      return null;
+    }
+  }
+
+  loadWeatherCalendar();
+</script>
