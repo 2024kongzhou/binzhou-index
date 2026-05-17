@@ -89,18 +89,14 @@ const categories = [...new Set(products.map(p => p.category))];
             
             <!-- 操作按钮 -->
             <div class="flex gap-2">
-              <button 
-                class="flex-1 bg-primary text-white py-2 rounded text-sm font-medium hover:bg-primary/90 transition"
-                onclick={`alert('咨询功能即将上线，请致电：13326280320')`}
-              >
-                咨询购买
-              </button>
-              <button 
-                class="px-3 py-2 border border-gray-300 rounded text-sm text-gray-700 hover:bg-gray-50 transition"
-                onclick={`alert('产品详情页面即将上线')`}
-              >
-                详情
-              </button>
+              <a href="tel:13326280320"
+                class="flex-1 bg-primary text-white py-2 rounded text-sm font-medium hover:bg-primary/90 transition text-center block">
+                📞 咨询购买
+              </a>
+              <a href="/deals"
+                class="px-3 py-2 border border-gray-300 rounded text-sm text-gray-700 hover:bg-gray-50 transition text-center block">
+                优惠详情
+              </a>
             </div>
           </div>
         </article>
