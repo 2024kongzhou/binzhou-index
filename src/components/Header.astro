@@ -18,6 +18,7 @@ const navItems = [
       ))}
     </nav>
 
+    <div id="weather-info" class="hidden md:flex items-center gap-1 text-xs text-gray-500"></div>
     <button id="hamburger-btn" class="hamburger-btn" aria-label="打开菜单">
       <span class="hamburger-line"></span>
       <span class="hamburger-line"></span>
@@ -301,4 +302,26 @@ const navItems = [
       document.body.style.overflow = '';
     });
   });
+
+  // 天气日历
+  async function initWeather() {
+    const container = document.getElementById('weather-info');
+    if (!container) return;
+    try {
+      const now = new Date();
+      const dateStr = now.toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' });
+      const res = await fetch('https://api.open-meteo.com/v1/forecast?latitude=37.38&longitude=117.97&current_weather=true');
+      if (!res.ok) { container.textContent = dateStr; return; }
+      const data = await res.json();
+      const temp = Math.round(data.current_weather.temperature);
+      const code = data.current_weather.weathercode;
+      const icons = { 0: '☀️', 1: '🌤️', 2: '⛅', 3: '☁️', 45: '🌫️', 48: '🌫️', 51: '🌦️', 53: '🌦️', 55: '🌧️', 61: '🌧️', 63: '🌧️', 65: '🌧️', 71: '🌨️', 73: '🌨️', 75: '❄️', 95: '⛈️' };
+      const icon = icons[code] || '🌡️';
+      container.innerHTML = `<span class="text-xs opacity-70">${dateStr}</span> <span>${icon} ${temp}°C</span>`;
+    } catch {
+      const dateStr = new Date().toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' });
+      container.textContent = dateStr;
+    }
+  }
+  initWeather();
 </script>
