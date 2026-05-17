@@ -23,62 +23,85 @@ const navItems = [
       </nav>
 
       <div id="weather-calendar" class="text-sm text-gray-600">
-        <!-- 天气和万年历将在这里显示 -->
+        <!-- 天气和日期将在这里显示 -->
       </div>
     </div>
   </div>
 </header>
 
 <script>
-  // 加载天气和万年历
+  // 加载天气和日期
   async function loadWeatherCalendar() {
     const container = document.getElementById('weather-calendar');
     if (!container) return;
 
     try {
-      // 获取日期信息
       const now = new Date();
-      const lunarDate = await getLunarDate(now);
-      const weather = await getWeather('滨州');
+      const weather = await getWeather(37.38, 117.97); // 滨州坐标
 
       container.innerHTML = `
-        <div class="flex items-center gap-4">
+        <div class="flex items-center gap-3">
           <span>${formatDate(now)}</span>
-          <span>${lunarDate}</span>
-          ${weather ? `<span>${weather}</span>` : ''}
+          ${weather ? `<span class="flex items-center gap-1"><span>${weather.icon}</span><span>${weather.temp}°C</span></span>` : ''}
         </div>
       `;
     } catch (e) {
-      console.error('加载天气历法失败:', e);
+      console.error('加载天气失败:', e);
     }
   }
 
-  function formatDate(date: Date) {
-    const options: Intl.DateTimeFormatOptions = {
+  function formatDate(date) {
+    const options = {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
-      weekday: 'long'
+      weekday: 'short'
     };
     return date.toLocaleDateString('zh-CN', options);
   }
 
-  async function getLunarDate(date: Date) {
-    // 简化版农历计算
-    const cn = ['日', '一', '二', '三', '四', '五', '六', '七', '八', '九', '十'];
-    const month = ['正', '二', '三', '四', '五', '六', '七', '八', '九', '十', '冬', '腊'];
-    return `农历${month[date.getMonth()]}${date.getDate()}日`;
-  }
-
-  async function getWeather(city: string) {
+  async function getWeather(lat, lon) {
     try {
-      const res = await fetch(`https://api.qweather.com/v7/weather/now?location=${encodeURIComponent(city)}&key=demo`);
+      // 使用 Open-Meteo 免费天气 API
+      const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`);
       if (!res.ok) return null;
       const data = await res.json();
-      return data.now?.temp ? `${data.now.temp}°C` : null;
+      const temp = data.current_weather?.temperature;
+      const code = data.current_weather?.weathercode;
+      
+      if (temp !== undefined) {
+        return {
+          temp: Math.round(temp),
+          icon: getWeatherIcon(code)
+        };
+      }
+      return null;
     } catch {
       return null;
     }
+  }
+
+  function getWeatherIcon(code) {
+    // WMO Weather interpretation codes
+    const icons = {
+      0: '☀️',      // Clear sky
+      1: '🌤️',      // Mainly clear
+      2: '⛅',      // Partly cloudy
+      3: '☁️',      // Overcast
+      45: '🌫️',     // Foggy
+      48: '🌫️',     // Depositing rime fog
+      51: '🌦️',     // Light drizzle
+      53: '🌦️',     // Moderate drizzle
+      55: '🌧️',     // Dense drizzle
+      61: '🌧️',     // Slight rain
+      63: '🌧️',     // Moderate rain
+      65: '🌧️',     // Heavy rain
+      71: '🌨️',     // Slight snow
+      73: '🌨️',     // Moderate snow
+      75: '❄️',     // Heavy snow
+      95: '⛈️',     // Thunderstorm
+    };
+    return icons[code] || '🌡️';
   }
 
   loadWeatherCalendar();

@@ -2,46 +2,501 @@
 import Layout from '../layouts/Layout.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
+import villagesData from '../data/villages.json';
+
+const counties = [...new Set(villagesData.map(v => v.county))].sort();
+const townsByCounty = {};
+counties.forEach(county => {
+  townsByCounty[county] = [...new Set(villagesData.filter(v => v.county === county).map(v => v.town))].sort();
+});
+const allSurnames = [...new Set(villagesData.flatMap(v => v.surnames ? v.surnames.split('、') : []))].filter(s => s).sort();
+const villagesPerPage = 50;
+const totalVillages = villagesData.length;
 ---
 
 <Layout title="滨州地名志 - 滨州索引">
   <Header />
+  
+  <style>
+    .place-hero {
+      background: linear-gradient(180deg, #FDF8F3 0%, #F9F2EA 100%);
+      padding: 6rem 1.5rem 3rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .place-hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at 20% 30%, rgba(196,149,106,0.08) 0%, transparent 40%),
+        radial-gradient(circle at 80% 70%, rgba(212,175,55,0.06) 0%, transparent 35%);
+    }
+    .hero-content { position: relative; z-index: 2; }
+    .hero-tag {
+      font-size: 0.7rem;
+      letter-spacing: 3px;
+      color: #C4956A;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-weight: 500;
+    }
+    .hero-tag::before {
+      content: '';
+      width: 30px;
+      height: 1px;
+      background: #C4956A;
+    }
+    .hero-title {
+      font-family: 'Noto Serif SC', serif;
+      font-size: clamp(2.5rem, 10vw, 3.5rem);
+      font-weight: 900;
+      line-height: 1.15;
+      margin-bottom: 0.5rem;
+    }
+    .hero-title .accent {
+      background: linear-gradient(135deg, #C4956A, #D4AF37);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .hero-desc {
+      font-size: 1rem;
+      color: #6B5D54;
+      max-width: 400px;
+      line-height: 1.8;
+    }
+    .stats-scroll {
+      padding: 2rem 0;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .stats-scroll::-webkit-scrollbar { display: none; }
+    .stats-inner {
+      display: flex;
+      gap: 1rem;
+      padding: 0 1.5rem;
+    }
+    .stat-card {
+      min-width: 150px;
+      background: #FFFFFF;
+      border: 1px solid rgba(196,149,106,0.1);
+      border-radius: 24px;
+      padding: 1.75rem 1.5rem;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, #C4956A, #D4AF37);
+    }
+    .stat-num {
+      font-family: 'Noto Serif SC', serif;
+      font-size: 2.5rem;
+      font-weight: 900;
+      background: linear-gradient(135deg, #C4956A, #D4AF37);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      line-height: 1;
+    }
+    .stat-label {
+      font-size: 0.8rem;
+      color: #9B8B7E;
+      margin-top: 0.75rem;
+      letter-spacing: 1px;
+    }
+    .search-float {
+      position: relative;
+      z-index: 10;
+      margin: -2rem 1.5rem 2rem;
+      background: #FFFFFF;
+      border: 1px solid rgba(196,149,106,0.15);
+      border-radius: 24px;
+      padding: 1.5rem;
+      box-shadow: 0 12px 40px rgba(44,36,32,0.1);
+    }
+    .search-input-wrap {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid rgba(196,149,106,0.1);
+    }
+    .search-icon { color: #C4956A; flex-shrink: 0; }
+    .search-input {
+      flex: 1;
+      background: none;
+      border: none;
+      font-size: 1rem;
+      color: #2C2420;
+      font-family: 'Noto Sans SC', sans-serif;
+      outline: none;
+    }
+    .search-input::placeholder { color: #9B8B7E; }
+    .filter-section {
+      background: #FDF8F3;
+      padding: 2rem 1.5rem;
+    }
+    .filter-row {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+    @media (min-width: 768px) {
+      .filter-row { grid-template-columns: 1fr 1fr 1fr; }
+    }
+    .filter-label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: #6B5D54;
+      margin-bottom: 0.5rem;
+    }
+    .filter-select {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      background: #FFFFFF;
+      border: 1px solid rgba(196,149,106,0.2);
+      border-radius: 12px;
+      font-size: 0.95rem;
+      color: #2C2420;
+      outline: none;
+      transition: border-color 0.3s;
+    }
+    .filter-select:focus {
+      border-color: #C4956A;
+    }
+    .dynasty-filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+    .dynasty-btn {
+      padding: 0.5rem 1rem;
+      background: rgba(196,149,106,0.08);
+      border: 1px solid rgba(196,149,106,0.2);
+      border-radius: 20px;
+      font-size: 0.85rem;
+      color: #6B5D54;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    .dynasty-btn:hover {
+      background: rgba(196,149,106,0.15);
+    }
+    .dynasty-btn.active {
+      background: linear-gradient(135deg, #C4956A, #D4AF37);
+      color: white;
+      border-color: transparent;
+    }
+    .villages-section {
+      padding: 2rem 1.5rem 4rem;
+      background: #FDF8F3;
+    }
+    .village-card {
+      background: #FFFFFF;
+      border: 1px solid rgba(196,149,106,0.1);
+      border-radius: 20px;
+      padding: 1.5rem;
+      transition: all 0.3s;
+      position: relative;
+      overflow: hidden;
+    }
+    .village-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 3px;
+      height: 100%;
+      background: linear-gradient(180deg, #C4956A, #D4AF37);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .village-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 40px rgba(44,36,32,0.1);
+    }
+    .village-card:hover::before {
+      opacity: 1;
+    }
+    .village-name {
+      font-family: 'Noto Serif SC', serif;
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #2C2420;
+      margin-bottom: 0.25rem;
+    }
+    .village-era {
+      display: inline-flex;
+      padding: 0.25rem 0.75rem;
+      background: linear-gradient(135deg, rgba(196,149,106,0.12), rgba(212,175,55,0.08));
+      border-radius: 12px;
+      font-size: 0.75rem;
+      color: #C4956A;
+      font-weight: 500;
+    }
+    .village-loc {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.85rem;
+      color: #6B5D54;
+      margin: 0.75rem 0;
+    }
+    .village-loc svg { color: #C4956A; }
+    .village-desc {
+      font-size: 0.9rem;
+      color: #9B8B7E;
+      line-height: 1.7;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .pagination {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 1rem;
+      margin-top: 2rem;
+    }
+    .page-btn {
+      padding: 0.75rem 1.5rem;
+      background: #FFFFFF;
+      border: 1px solid rgba(196,149,106,0.2);
+      border-radius: 50px;
+      font-size: 0.9rem;
+      color: #6B5D54;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    .page-btn:hover:not(:disabled) {
+      background: linear-gradient(135deg, #C4956A, #D4AF37);
+      color: white;
+      border-color: transparent;
+    }
+    .page-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .page-info {
+      font-size: 0.9rem;
+      color: #6B5D54;
+    }
+    .no-results {
+      text-align: center;
+      padding: 4rem 2rem;
+      color: #9B8B7E;
+    }
+  </style>
 
-  <main class="max-w-7xl mx-auto px-4 py-8">
-    <h1 class="text-3xl font-bold mb-8">滨州地名志</h1>
+  <main>
+    <!-- Hero Section -->
+    <section class="place-hero">
+      <div class="hero-content max-w-4xl mx-auto">
+        <div class="hero-tag">地名文化</div>
+        <h1 class="hero-title">
+          <span class="accent">滨州地名志</span>
+        </h1>
+        <p class="hero-desc">收录滨州 {totalVillages} 个村庄的历史与现状，追溯地名起源，传承地方文化</p>
+      </div>
+    </section>
 
-    <div class="mb-8">
-      <input
-        type="text"
-        id="search-input"
-        placeholder="搜索地名、姓氏、历史事件..."
-        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-      />
+    <!-- Stats Scroll -->
+    <div class="stats-scroll">
+      <div class="stats-inner">
+        {counties.map(county => {
+          const count = villagesData.filter(v => v.county === county).length;
+          return (
+            <div class="stat-card">
+              <div class="stat-num">{count}</div>
+              <div class="stat-label">{county}</div>
+            </div>
+          );
+        })}
+      </div>
     </div>
 
-    <div class="mb-8 flex flex-wrap gap-2">
-      <button class="px-4 py-2 bg-primary text-white rounded">全部</button>
-      <button class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">尚店乡</button>
-      <button class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">张集乡</button>
-      <button class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">单寺乡</button>
-      <button class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">梁才乡</button>
-      <button class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">蒲城乡</button>
-      <button class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">彭李乡</button>
-      <button class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">郭集乡</button>
+    <!-- Search Float -->
+    <div class="search-float max-w-4xl mx-auto">
+      <div class="search-input-wrap">
+        <svg class="search-icon w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+        </svg>
+        <input type="text" id="search-input" placeholder="搜索村庄名、姓氏、历史事件..." class="search-input" />
+      </div>
     </div>
 
-    <div class="text-center py-16 text-gray-500">
-      <p class="text-lg">📖 地名志数据整理中...</p>
-      <p class="mt-2">请等待数据导入</p>
-    </div>
+    <!-- Filter Section -->
+    <section class="filter-section max-w-4xl mx-auto">
+      <div class="filter-row">
+        <div>
+          <label class="filter-label">选择县区</label>
+          <select id="county-select" class="filter-select">
+            <option value="">全部县区</option>
+            {counties.map(county => (<option value={county}>{county}</option>))}
+          </select>
+        </div>
+        <div>
+          <label class="filter-label">选择乡镇</label>
+          <select id="town-select" class="filter-select" disabled>
+            <option value="">请先选择县区</option>
+          </select>
+        </div>
+        <div>
+          <label class="filter-label">选择姓氏</label>
+          <select id="surname-select" class="filter-select">
+            <option value="">全部姓氏</option>
+            {allSurnames.map(surname => (<option value={surname}>{surname}姓</option>))}
+          </select>
+        </div>
+      </div>
+      <div class="mt-4">
+        <label class="filter-label">建村朝代</label>
+        <div class="dynasty-filters" id="dynasty-filters">
+          <button class="dynasty-btn active" data-dynasty="">全部</button>
+          <button class="dynasty-btn" data-dynasty="夏">夏</button>
+          <button class="dynasty-btn" data-dynasty="商">商</button>
+          <button class="dynasty-btn" data-dynasty="周">周</button>
+          <button class="dynasty-btn" data-dynasty="秦">秦</button>
+          <button class="dynasty-btn" data-dynasty="汉">汉</button>
+          <button class="dynasty-btn" data-dynasty="隋">隋</button>
+          <button class="dynasty-btn" data-dynasty="唐">唐</button>
+          <button class="dynasty-btn" data-dynasty="宋">宋</button>
+          <button class="dynasty-btn" data-dynasty="元">元</button>
+          <button class="dynasty-btn" data-dynasty="明">明</button>
+          <button class="dynasty-btn" data-dynasty="清">清</button>
+          <button class="dynasty-btn" data-dynasty="民国">民国</button>
+        </div>
+      </div>
+      <div class="mt-4 flex justify-end">
+        <button id="reset-filters" class="px-4 py-2 text-gray-600 hover:text-primary transition">重置筛选</button>
+      </div>
+    </section>
+
+    <!-- Villages Section -->
+    <section class="villages-section">
+      <div class="max-w-7xl mx-auto">
+        <div class="mb-4 flex justify-between items-center">
+          <p class="text-sm" style="color: #6B5D54;">显示 <span id="showing-count">{Math.min(villagesPerPage, totalVillages)}</span> / <span id="total-count">{totalVillages}</span> 个村庄</p>
+        </div>
+        <div id="villages-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {villagesData.slice(0, villagesPerPage).map(village => (
+            <a href={`/place/${village.id}`} class="village-card block">
+              <div class="flex justify-between items-start mb-2">
+                <h3 class="village-name">{village.name}</h3>
+                {village.established && (<span class="village-era">{village.established}</span>)}
+              </div>
+              <div class="village-loc">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                </svg>
+                <span>{village.county} · {village.town}</span>
+              </div>
+              {village.surnames && (<p class="text-sm mb-2" style="color: #9B8B7E;">姓氏: {village.surnames}</p>)}
+              <p class="village-desc">{village.history}</p>
+            </a>
+          ))}
+        </div>
+        <div id="no-results" class="no-results hidden">
+          <p class="text-lg">未找到匹配的村庄</p>
+          <p class="mt-2">请尝试其他搜索条件</p>
+        </div>
+        <div class="pagination">
+          <button id="prev-page" class="page-btn" disabled>上一页</button>
+          <span id="page-info" class="page-info">第 1 页</span>
+          <button id="next-page" class="page-btn">下一页</button>
+        </div>
+      </div>
+    </section>
   </main>
-
   <Footer />
 </Layout>
 
-<script>
+<script define:vars={{ villagesData, villagesPerPage, townsByCounty }}>
+  let currentPage = 1;
+  let filteredVillages = [...villagesData];
+  let currentFilters = { search: '', county: '', town: '', surname: '', dynasty: '' };
   const searchInput = document.getElementById('search-input');
-  searchInput?.addEventListener('input', (e) => {
-    console.log('搜索:', (e.target as HTMLInputElement).value);
-  });
+  const countySelect = document.getElementById('county-select');
+  const townSelect = document.getElementById('town-select');
+  const surnameSelect = document.getElementById('surname-select');
+  const dynastyBtns = document.querySelectorAll('.dynasty-btn');
+  const resetBtn = document.getElementById('reset-filters');
+  const villagesGrid = document.getElementById('villages-grid');
+  const noResults = document.getElementById('no-results');
+  const showingCount = document.getElementById('showing-count');
+  const totalCount = document.getElementById('total-count');
+  const prevPageBtn = document.getElementById('prev-page');
+  const nextPageBtn = document.getElementById('next-page');
+  const pageInfo = document.getElementById('page-info');
+
+  searchInput.addEventListener('input', (e) => { currentFilters.search = e.target.value.toLowerCase(); currentPage = 1; applyFilters(); });
+  countySelect.addEventListener('change', (e) => { currentFilters.county = e.target.value; currentFilters.town = ''; currentPage = 1; updateTownSelect(); applyFilters(); });
+  townSelect.addEventListener('change', (e) => { currentFilters.town = e.target.value; currentPage = 1; applyFilters(); });
+  surnameSelect.addEventListener('change', (e) => { currentFilters.surname = e.target.value; currentPage = 1; applyFilters(); });
+  dynastyBtns.forEach(btn => { btn.addEventListener('click', () => { dynastyBtns.forEach(b => { b.classList.remove('active'); }); btn.classList.add('active'); currentFilters.dynasty = btn.dataset.dynasty; currentPage = 1; applyFilters(); }); });
+  resetBtn.addEventListener('click', () => { currentFilters = { search: '', county: '', town: '', surname: '', dynasty: '' }; searchInput.value = ''; countySelect.value = ''; surnameSelect.value = ''; dynastyBtns.forEach(b => { b.classList.remove('active'); }); dynastyBtns[0].classList.add('active'); updateTownSelect(); currentPage = 1; applyFilters(); });
+
+  function updateTownSelect() {
+    townSelect.innerHTML = '<option value="">全部乡镇</option>';
+    if (currentFilters.county && townsByCounty[currentFilters.county]) {
+      townSelect.disabled = false;
+      townsByCounty[currentFilters.county].forEach(town => { const option = document.createElement('option'); option.value = town; option.textContent = town; townSelect.appendChild(option); });
+    } else { townSelect.disabled = true; }
+    townSelect.value = currentFilters.town;
+  }
+
+  function applyFilters() {
+    filteredVillages = villagesData.filter(village => {
+      if (currentFilters.search) {
+        const searchStr = currentFilters.search;
+        const matchName = village.name.toLowerCase().includes(searchStr);
+        const matchPinyin = village.pinyin && village.pinyin.toLowerCase().includes(searchStr);
+        const matchHistory = village.history && village.history.toLowerCase().includes(searchStr);
+        const matchSurnames = village.surnames && village.surnames.toLowerCase().includes(searchStr);
+        if (!matchName && !matchPinyin && !matchHistory && !matchSurnames) return false;
+      }
+      if (currentFilters.county && village.county !== currentFilters.county) return false;
+      if (currentFilters.town && village.town !== currentFilters.town) return false;
+      if (currentFilters.surname && (!village.surnames || !village.surnames.includes(currentFilters.surname))) return false;
+      if (currentFilters.dynasty && (!village.established || !village.established.includes(currentFilters.dynasty))) return false;
+      return true;
+    });
+    renderVillages();
+    updatePagination();
+  }
+
+  function renderVillages() {
+    const start = (currentPage - 1) * villagesPerPage;
+    const end = start + villagesPerPage;
+    const pageVillages = filteredVillages.slice(start, end);
+    if (pageVillages.length === 0) { villagesGrid.classList.add('hidden'); noResults.classList.remove('hidden'); }
+    else {
+      villagesGrid.classList.remove('hidden'); noResults.classList.add('hidden');
+      villagesGrid.innerHTML = pageVillages.map(village => `<a href="/place/${village.id}" class="village-card block"><div class="flex justify-between items-start mb-2"><h3 class="village-name">${village.name}</h3>${village.established ? `<span class="village-era">${village.established}</span>` : ''}</div><div class="village-loc"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path></svg><span>${village.county} · ${village.town}</span></div>${village.surnames ? `<p class="text-sm mb-2" style="color: #9B8B7E;">姓氏: ${village.surnames}</p>` : ''}<p class="village-desc">${village.history || ''}</p></a>`).join('');
+    }
+    showingCount.textContent = Math.min(pageVillages.length, filteredVillages.length);
+    totalCount.textContent = filteredVillages.length;
+  }
+
+  function updatePagination() {
+    const totalPages = Math.ceil(filteredVillages.length / villagesPerPage);
+    pageInfo.textContent = `第 ${currentPage} / ${totalPages || 1} 页`;
+    prevPageBtn.disabled = currentPage <= 1;
+    nextPageBtn.disabled = currentPage >= totalPages;
+  }
+
+  prevPageBtn.addEventListener('click', () => { if (currentPage > 1) { currentPage--; renderVillages(); updatePagination(); window.scrollTo({ top: 0, behavior: 'smooth' }); } });
+  nextPageBtn.addEventListener('click', () => { const totalPages = Math.ceil(filteredVillages.length / villagesPerPage); if (currentPage < totalPages) { currentPage++; renderVillages(); updatePagination(); window.scrollTo({ top: 0, behavior: 'smooth' }); } });
+  updatePagination();
 </script>

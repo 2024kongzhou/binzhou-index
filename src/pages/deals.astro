@@ -1,0 +1,213 @@
+﻿---
+import Layout from '../layouts/Layout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+
+const deals = [
+  {
+    id: 1,
+    name: "简约现代窗帘",
+    originalPrice: 388,
+    currentPrice: 268,
+    discount: "6.9折",
+    endTime: "2024-12-31",
+    image: "/images/products/modern-curtain.jpg",
+    description: "纯色设计，适用于客厅卧室，简约大气"
+  },
+  {
+    id: 2,
+    name: "高档绒布窗帘",
+    originalPrice: 588,
+    currentPrice: 388,
+    discount: "6.6折",
+    endTime: "2024-12-31",
+    image: "/images/products/velvet-curtain.jpg",
+    description: "触感柔软，遮光保温，奢华质感"
+  },
+  {
+    id: 3,
+    name: "现代简约墙布",
+    originalPrice: 88,
+    currentPrice: 58,
+    discount: "6.6折",
+    endTime: "2024-12-31",
+    image: "/images/products/modern-wallpaper.jpg",
+    description: "多种纹理，客厅背景墙首选"
+  },
+  {
+    id: 4,
+    name: "床品四件套",
+    originalPrice: 368,
+    currentPrice: 238,
+    discount: "6.5折",
+    endTime: "2024-12-31",
+    image: "/images/products/bedding.jpg",
+    description: "纯棉材质，舒适柔软，亲肤透气"
+  }
+];
+
+// 计算倒计时
+function getCountdown(endTime: string) {
+  const end = new Date(endTime).getTime();
+  const now = new Date().getTime();
+  const diff = end - now;
+  
+  if (diff <= 0) return "已结束";
+  
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+  return `仅剩 ${days} 天`;
+}
+---
+
+<Layout title="限时优惠 - 滨州索引" description="滨州索引限时优惠活动，窗帘墙布软装产品特惠">
+  <Header />
+  
+  <main class="max-w-7xl mx-auto px-4 py-8">
+    <!-- 面包屑导航 -->
+    <nav aria-label="面包屑导航" class="text-sm text-gray-500 mb-6">
+      <ol class="flex items-center space-x-2">
+        <li><a href="/" class="hover:text-primary">首页</a></li>
+        <li><span class="text-gray-400">/</span></li>
+        <li aria-current="page" class="text-gray-800">限时优惠</li>
+      </ol>
+    </nav>
+
+    <!-- 页面标题 -->
+    <div class="text-center mb-12">
+      <h1 class="text-4xl font-bold text-gray-900 mb-4">限时优惠活动</h1>
+      <p class="text-lg text-gray-600">精选窗帘墙布软装产品，限时特惠，不容错过</p>
+    </div>
+
+    <!-- 倒计时提示 -->
+    <div class="bg-gradient-to-r from-red-500 to-orange-500 text-white rounded-lg p-6 mb-8 text-center">
+      <div class="flex items-center justify-center gap-2 mb-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <span class="text-lg font-semibold">限时特惠活动进行中</span>
+      </div>
+      <p class="text-sm opacity-90">优惠截止至2024年12月31日，数量有限，先到先得</p>
+    </div>
+
+    <!-- 优惠商品列表 -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8" role="list">
+      {deals.map((deal) => (
+        <article class="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow" role="listitem">
+          <!-- 限时标签 -->
+          <div class="relative">
+            <div class="absolute top-4 left-4 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold z-10">
+              限时特惠
+            </div>
+            <div class="absolute top-4 right-4 bg-orange-500 text-white px-3 py-1 rounded-full text-sm font-bold z-10">
+              {deal.discount}
+            </div>
+            <!-- 商品图片占位 -->
+            <div class="h-64 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
+              <div class="text-center text-gray-400">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                <span class="text-sm">{deal.name}</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="p-6">
+            <h2 class="text-xl font-bold text-gray-900 mb-2">{deal.name}</h2>
+            <p class="text-gray-600 mb-4">{deal.description}</p>
+            
+            <!-- 价格对比 -->
+            <div class="flex items-baseline gap-3 mb-4">
+              <span class="text-3xl font-bold text-red-600">¥{deal.currentPrice}</span>
+              <span class="text-lg text-gray-400 line-through">¥{deal.originalPrice}</span>
+              <span class="bg-red-100 text-red-600 px-2 py-1 rounded text-sm font-medium">
+                省¥{deal.originalPrice - deal.currentPrice}
+              </span>
+            </div>
+            
+            <!-- 倒计时 -->
+            <div class="flex items-center gap-2 text-orange-600 mb-4">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span class="font-medium">{getCountdown(deal.endTime)}</span>
+            </div>
+            
+            <!-- 操作按钮 -->
+            <div class="flex gap-3">
+              <a 
+                href={`/product`}
+                class="flex-1 bg-primary text-white text-center py-3 rounded-lg font-medium hover:bg-primary/90 transition"
+                aria-label={`立即抢购 ${deal.name}`}
+              >
+                立即抢购
+              </a>
+              <a 
+                href={`/product`}
+                class="px-4 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition"
+                aria-label={`查看 ${deal.name} 详情`}
+              >
+                查看详情
+              </a>
+            </div>
+          </div>
+        </article>
+      ))}
+    </div>
+
+    <!-- 优惠说明 -->
+    <div class="mt-12 bg-gray-50 rounded-lg p-8">
+      <h2 class="text-xl font-bold text-gray-900 mb-4">优惠说明</h2>
+      <ul class="space-y-2 text-gray-600">
+        <li class="flex items-start gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+          </svg>
+          <span>限时优惠活动时间：即日起至2024年12月31日</span>
+        </li>
+        <li class="flex items-start gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+          </svg>
+          <span>优惠产品数量有限，售完即止</span>
+        </li>
+        <li class="flex items-start gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+          </svg>
+          <span>本优惠活动不与其他优惠同时使用</span>
+        </li>
+        <li class="flex items-start gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+          </svg>
+          <span>如需咨询，请致电：13326280320</span>
+        </li>
+      </ul>
+    </div>
+
+    <!-- 更多推荐 -->
+    <div class="mt-12">
+      <h2 class="text-2xl font-bold text-gray-900 mb-6">更多推荐</h2>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <a href="/product" class="block bg-white rounded-lg shadow p-6 hover:shadow-lg transition text-center">
+          <div class="text-4xl mb-3">🖼️</div>
+          <h3 class="font-bold text-lg mb-2">全部产品</h3>
+          <p class="text-gray-600 text-sm">浏览我们的全部窗帘墙布产品</p>
+        </a>
+        <a href="/tutorial" class="block bg-white rounded-lg shadow p-6 hover:shadow-lg transition text-center">
+          <div class="text-4xl mb-3">📚</div>
+          <h3 class="font-bold text-lg mb-2">装修教程</h3>
+          <p class="text-gray-600 text-sm">学习窗帘选购和安装技巧</p>
+        </a>
+        <a href="/" class="block bg-white rounded-lg shadow p-6 hover:shadow-lg transition text-center">
+          <div class="text-4xl mb-3">🏠</div>
+          <h3 class="font-bold text-lg mb-2">返回首页</h3>
+          <p class="text-gray-600 text-sm">了解更多滨州索引服务</p>
+        </a>
+      </div>
+    </div>
+  </main>
+  
+  <Footer />
+</Layout>
