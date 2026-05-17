@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-滨州索引 - 每日推文自动生成脚本
+滨州索引 - 每日推文自动生成脚本（本地运行版）
+运行方式: python daily_post_generator.py
+定时任务: crontab -e 添加 0 8 * * * cd /path/to/project && python daily_post_generator.py >> /var/log/posts.log 2>&1
 """
 
-import os, sys, json, time, random, smtplib, base64, requests, re
+import os, sys, json, time, random, smtplib, base64, requests, re, subprocess
 from datetime import datetime
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
@@ -14,9 +16,12 @@ CONFIG = {
     "groq_api_key": os.getenv("GROQ_API_KEY", ""),
     "pexels_api_key": os.getenv("PEXELS_API_KEY", ""),
     "imgbb_api_key": os.getenv("IMGBB_API_KEY", ""),
-    "gmail_user": os.getenv("GMAIL_USER", "kongzhou29@gmail.com"),
+    "gmail_user": os.getenv("GMAIL_USER", ""),
     "gmail_password": os.getenv("GMAIL_PASSWORD", ""),
-    "notify_email": os.getenv("NOTIFY_EMAIL", "kongzhou29@gmail.com"),
+    "notify_email": os.getenv("NOTIFY_EMAIL", ""),
+    "github_owner": "2024kongzhou",
+    "github_repo": "binzhou-index",
+    "github_branch": "main",
     "blog_url": "https://keyi.de5.net",
     "author": "滨州索引",
 }
@@ -99,7 +104,6 @@ class ContentGenerator:
         return self._call_ai(prompt)
     
     def _call_ai(self, prompt):
-        # Try Gemini first
         try:
             r = requests.post(f"{self.base_url}?key={self.api_key}", 
                 json={"contents":[{"parts":[{"text":prompt}]}],
@@ -110,7 +114,6 @@ class ContentGenerator:
             return self._parse(text)
         except Exception as e:
             print(f"Gemini失败: {e}")
-        # Fallback to Groq
         try:
             r = requests.post("https://api.groq.com/openai/v1/chat/completions",
                 headers={"Authorization":f"Bearer {CONFIG['groq_api_key']}","Content-Type":"application/json"},
@@ -201,6 +204,9 @@ class EmailNotifier:
         self.user, self.pwd, self.to = user, pwd, to
     
     def send(self, posts, ok=True):
+        if not self.user or not self.pwd or not self.to:
+            print("⚠️ 邮箱未配置，跳过通知")
+            return
         subj = f"{'✅' if ok else '❌'} 每日推文 - {datetime.now().strftime('%Y-%m-%d')}"
         body = f"""<html><body style="font-family:Arial;max-width:600px;margin:0 auto;">
 <div style="background:linear-gradient(135deg,#667eea,#764ba2);padding:20px;color:white;">
@@ -222,6 +228,19 @@ class EmailNotifier:
             s.starttls(); s.login(self.user,self.pwd); s.send_message(msg); s.quit()
             print("📧 邮件已发送")
         except Exception as e: print(f"邮件失败: {e}")
+
+def git_push(files, message):
+    """提交并推送到GitHub"""
+    try:
+        for f in files:
+            subprocess.run(["git","add",f], check=True, capture_output=True)
+        subprocess.run(["git","commit","-m",message], check=True, capture_output=True)
+        subprocess.run(["git","push","origin",CONFIG["github_branch"]], check=True, capture_output=True)
+        print("✅ 已推送到GitHub")
+        return True
+    except subprocess.CalledProcessError as e:
+        print(f"Git推送失败: {e.stderr.decode()}")
+        return False
 
 def main():
     print("="*50+"\n🚀 滨州索引每日推文系统\n"+"="*50)
@@ -252,8 +271,11 @@ def main():
         rf, _ = MarkdownGenerator.create(rp, "renovation", today, ri, blog_dir)
         
         posts = [{"t":"🪟窗帘","title":cp['title']},{"t":"🔨装修","title":rp['title']}]
-        mail.send(posts, True)
         
+        print("\n📤 推送到GitHub...")
+        git_push([cf, rf], f"📝 每日推文 - {today}")
+        
+        mail.send(posts, True)
         print(f"\n✅ 完成！\n📝 {cp['title']}\n📝 {rp['title']}")
     except Exception as e:
         print(f"\n❌ 失败: {e}")
