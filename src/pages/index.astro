@@ -54,11 +54,11 @@ const featuredVillages = villagesData.filter(v => v.established && ['夏', '商'
           <div class="text-gray-600 mt-2">覆盖县区</div>
         </div>
         <div class="bg-white rounded-lg shadow p-6">
-          <div class="text-3xl font-bold text-primary">2800+</div>
+          <div class="text-3xl font-bold text-primary">{villagesData.filter(v => v.history && v.history.length > 10).length.toLocaleString()}+</div>
           <div class="text-gray-600 mt-2">历史记录</div>
         </div>
         <div class="bg-white rounded-lg shadow p-6">
-          <div class="text-3xl font-bold text-primary">500+</div>
+          <div class="text-3xl font-bold text-primary">{new Set(villagesData.flatMap(v => v.surnames ? v.surnames.split("、") : [])).size}+</div>
           <div class="text-gray-600 mt-2">姓氏源流</div>
         </div>
       </div>

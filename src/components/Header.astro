@@ -22,8 +22,26 @@ const navItems = [
         ))}
       </nav>
 
-      <div id="weather-calendar" class="text-sm text-gray-600">
+      <!-- Mobile menu button -->
+      <button id="mobile-menu-btn" class="md:hidden p-2 text-gray-700 hover:text-primary" aria-label="打开菜单">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+        </svg>
+      </button>
+
+      <div id="weather-calendar" class="text-sm text-gray-600 hidden md:block">
         <!-- 天气和日期将在这里显示 -->
+      </div>
+    </div>
+      <!-- Mobile menu panel -->
+      <div id="mobile-menu" class="hidden md:hidden border-t mt-4 pt-4">
+        <nav class="flex flex-col space-y-3">
+          {navItems.map(item => (
+            <a href={item.href} class="text-gray-700 hover:text-primary transition py-2 border-b border-gray-100">
+              {item.name}
+            </a>
+          ))}
+        </nav>
       </div>
     </div>
   </div>
@@ -105,4 +123,13 @@ const navItems = [
   }
 
   loadWeatherCalendar();
+
+  // Mobile menu toggle
+  const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+  const mobileMenu = document.getElementById('mobile-menu');
+  if (mobileMenuBtn && mobileMenu) {
+    mobileMenuBtn.addEventListener('click', () => {
+      mobileMenu.classList.toggle('hidden');
+    });
+  }
 </script>

@@ -1,41 +1,123 @@
----
+﻿---
 import Layout from '../layouts/Layout.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
+import communities from '../data/communities.json';
+
+const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+const grouped = {};
+communities.forEach(c => {
+  const firstLetter = c.name.charAt(0).toUpperCase();
+  const letter = /[A-Z]/.test(firstLetter) ? firstLetter : '#';
+  if (!grouped[letter]) grouped[letter] = [];
+  grouped[letter].push(c);
+});
+const availableLetters = Object.keys(grouped).sort();
 ---
 
 <Layout title="滨州小区索引 - 滨州索引">
   <Header />
-
   <main class="max-w-7xl mx-auto px-4 py-8">
-    <h1 class="text-3xl font-bold mb-8">滨州小区索引</h1>
-
+    <nav aria-label="面包屑导航" class="text-sm text-gray-500 mb-6">
+      <ol class="flex items-center space-x-2">
+        <li><a href="/" class="hover:text-primary">首页</a></li>
+        <li><span class="text-gray-400">/</span></li>
+        <li aria-current="page" class="text-gray-800">滨州小区索引</li>
+      </ol>
+    </nav>
+    <div class="text-center mb-12">
+      <h1 class="text-4xl font-bold text-gray-900 mb-4">滨州小区索引</h1>
+      <p class="text-lg text-gray-600">收录滨城区主要住宅小区信息，共 {communities.length} 个小区</p>
+    </div>
     <div class="mb-8">
-      <input
-        type="text"
-        placeholder="搜索小区名称..."
-        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-      />
+      <div class="relative">
+        <input type="text" id="search-input" placeholder="搜索小区名称、地址、开发商..."
+          class="w-full px-4 py-3 pl-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary" />
+        <svg class="absolute left-4 top-3.5 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+        </svg>
+      </div>
     </div>
-
-    <div class="mb-4 flex flex-wrap gap-2">
-      <span class="text-gray-600">首字母：</span>
-      <button class="px-3 py-1 bg-primary text-white rounded text-sm">A</button>
-      <button class="px-3 py-1 bg-gray-200 rounded text-sm hover:bg-gray-300">B</button>
-      <button class="px-3 py-1 bg-gray-200 rounded text-sm hover:bg-gray-300">C</button>
-      <button class="px-3 py-1 bg-gray-200 rounded text-sm hover:bg-gray-300">D</button>
-      <button class="px-3 py-1 bg-gray-200 rounded text-sm hover:bg-gray-300">E</button>
-      <button class="px-3 py-1 bg-gray-200 rounded text-sm hover:bg-gray-300">F</button>
-      <button class="px-3 py-1 bg-gray-200 rounded text-sm hover:bg-gray-300">G</button>
-      <button class="px-3 py-1 bg-gray-200 rounded text-sm hover:bg-gray-300">H</button>
-      <button class="px-3 py-1 bg-gray-200 rounded text-sm hover:bg-gray-300">...</button>
+    <div class="mb-6 flex flex-wrap gap-2" id="letter-filters">
+      <span class="text-gray-600 self-center mr-2">首字母：</span>
+      <button class="letter-btn px-3 py-1 bg-primary text-white rounded text-sm" data-letter="all">全部</button>
+      {letters.map(letter => (
+        <button class={`letter-btn px-3 py-1 rounded text-sm ${availableLetters.includes(letter) ? 'bg-gray-200 hover:bg-gray-300 cursor-pointer' : 'bg-gray-100 text-gray-300 cursor-default'}`}
+          data-letter={letter} {availableLetters.includes(letter) ? '' : 'disabled'}>
+          {letter}
+        </button>
+      ))}
     </div>
-
-    <div class="text-center py-16 text-gray-500">
-      <p class="text-lg">🏘️ 小区数据爬取中...</p>
-      <p class="mt-2">请提供数据源URL进行爬取</p>
+    <div id="communities-list">
+      {Object.entries(grouped).sort(([a], [b]) => a.localeCompare(b)).map(([letter, items]) => (
+        <div class="mb-8 community-group" data-letter={letter}>
+          <h2 class="text-2xl font-bold text-primary mb-4 pb-2 border-b">{letter}</h2>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {items.map(item => (
+              <div class="bg-white rounded-lg shadow p-5 hover:shadow-lg transition">
+                <h3 class="text-lg font-bold text-gray-800 mb-2">{item.name}</h3>
+                <div class="space-y-1 text-sm text-gray-600">
+                  <p>📍 {item.address}</p>
+                  <p>🏗️ {item.developer}</p>
+                  <p>📅 {item.year}年建成</p>
+                  <p>🏠 {item.type}</p>
+                  <p class="text-primary font-medium">💰 {item.price}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+    <div id="no-results" class="hidden text-center py-16 text-gray-500">
+      <p class="text-lg">未找到匹配的小区</p>
     </div>
   </main>
-
   <Footer />
 </Layout>
+
+<script define:vars={{ communities }}>
+  const searchInput = document.getElementById('search-input');
+  const letterBtns = document.querySelectorAll('.letter-btn');
+  const groups = document.querySelectorAll('.community-group');
+  const noResults = document.getElementById('no-results');
+
+  let currentLetter = 'all';
+
+  letterBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (btn.disabled) return;
+      letterBtns.forEach(b => { b.classList.remove('bg-primary', 'text-white'); b.classList.add('bg-gray-200'); });
+      btn.classList.remove('bg-gray-200');
+      btn.classList.add('bg-primary', 'text-white');
+      currentLetter = btn.dataset.letter;
+      applyFilters();
+    });
+  });
+
+  searchInput.addEventListener('input', applyFilters);
+
+  function applyFilters() {
+    const search = searchInput.value.toLowerCase();
+    let visibleCount = 0;
+    groups.forEach(group => {
+      const letter = group.dataset.letter;
+      const items = group.querySelectorAll('.bg-white');
+      let groupVisible = 0;
+      items.forEach(item => {
+        const text = item.textContent.toLowerCase();
+        const matchSearch = !search || text.includes(search);
+        const matchLetter = currentLetter === 'all' || letter === currentLetter;
+        if (matchSearch && matchLetter) {
+          item.style.display = '';
+          groupVisible++;
+        } else {
+          item.style.display = 'none';
+        }
+      });
+      group.style.display = groupVisible > 0 ? '' : 'none';
+      visibleCount += groupVisible;
+    });
+    noResults.classList.toggle('hidden', visibleCount > 0);
+  }
+</script>

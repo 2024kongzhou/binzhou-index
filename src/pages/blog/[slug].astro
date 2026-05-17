@@ -1,0 +1,71 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import { getCollection } from 'astro:content';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('blog');
+  return posts.map(post => ({
+    params: { slug: post.slug },
+    props: { post },
+  }));
+}
+
+const { post } = Astro.props;
+const { Content } = await post.render();
+const { title, description, category, pubDate, author, image, tags } = post.data;
+---
+
+<Layout title={`${title} - 滨州索引`} description={description}>
+  <Header />
+  <main class="max-w-4xl mx-auto px-4 py-8">
+    <nav aria-label="面包屑导航" class="text-sm text-gray-500 mb-6">
+      <ol class="flex items-center space-x-2">
+        <li><a href="/" class="hover:text-primary">首页</a></li>
+        <li><span class="text-gray-400">/</span></li>
+        <li><a href="/blog" class="hover:text-primary">文章博客</a></li>
+        <li><span class="text-gray-400">/</span></li>
+        <li aria-current="page" class="text-gray-800">{title}</li>
+      </ol>
+    </nav>
+    <article>
+      <header class="mb-8">
+        <div class="flex items-center gap-2 mb-3">
+          <span class="px-3 py-1 bg-blue-100 text-blue-700 text-sm rounded-full">{category}</span>
+          <time class="text-sm text-gray-500" datetime={pubDate.toISOString()}>{pubDate.toLocaleDateString('zh-CN')}</time>
+        </div>
+        <h1 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">{title}</h1>
+        <p class="text-lg text-gray-600 mb-4">{description}</p>
+        <div class="flex items-center gap-4 text-sm text-gray-500">
+          <span>作者：{author}</span>
+          {tags.length > 0 && (
+            <div class="flex gap-2">
+              {tags.map(tag => <span class="px-2 py-1 bg-gray-100 rounded text-xs">#{tag}</span>)}
+            </div>
+          )}
+        </div>
+      </header>
+      <div class="prose prose-lg max-w-none">
+        <Content />
+      </div>
+    </article>
+    <div class="mt-12 pt-8 border-t">
+      <a href="/blog" class="text-primary hover:underline">← 返回文章列表</a>
+    </div>
+  </main>
+  <Footer />
+</Layout>
+
+<style>
+  .prose { color: #374151; line-height: 1.8; }
+  .prose h1, .prose h2, .prose h3 { color: #111827; font-weight: 700; margin-top: 2em; margin-bottom: 0.75em; }
+  .prose h2 { font-size: 1.5rem; border-bottom: 1px solid #e5e7eb; padding-bottom: 0.5em; }
+  .prose h3 { font-size: 1.25rem; }
+  .prose p { margin-bottom: 1.25em; }
+  .prose ul, .prose ol { margin-bottom: 1.25em; padding-left: 1.5em; }
+  .prose li { margin-bottom: 0.5em; }
+  .prose blockquote { border-left: 4px solid #C4956A; padding-left: 1em; color: #6b7280; font-style: italic; margin: 1.5em 0; }
+  .prose strong { color: #111827; }
+  .prose a { color: #C4956A; text-decoration: underline; }
+</style>

@@ -440,6 +440,15 @@ const totalVillages = villagesData.length;
   const nextPageBtn = document.getElementById('next-page');
   const pageInfo = document.getElementById('page-info');
 
+  // 从URL参数读取搜索关键词
+  const urlParams = new URLSearchParams(window.location.search);
+  const urlSearch = urlParams.get('search');
+  if (urlSearch) {
+    currentFilters.search = urlSearch.toLowerCase();
+    searchInput.value = urlSearch;
+    applyFilters();
+  }
+
   searchInput.addEventListener('input', (e) => { currentFilters.search = e.target.value.toLowerCase(); currentPage = 1; applyFilters(); });
   countySelect.addEventListener('change', (e) => { currentFilters.county = e.target.value; currentFilters.town = ''; currentPage = 1; updateTownSelect(); applyFilters(); });
   townSelect.addEventListener('change', (e) => { currentFilters.town = e.target.value; currentPage = 1; applyFilters(); });
