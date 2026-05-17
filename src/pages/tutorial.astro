@@ -3,6 +3,7 @@ import { getCollection } from 'astro:content';
 import Layout from '../layouts/Layout.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
+import BottomNav from '../components/BottomNav.astro';
 
 const tutorials = await getCollection('tutorial');
 const sortedTutorials = tutorials.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
@@ -106,6 +107,7 @@ const categories = [...new Set(tutorials.map(t => t.data.category))];
   </main>
 
   <Footer />
+  <BottomNav />
 </Layout>
 
 <script>
@@ -160,3 +162,4 @@ const categories = [...new Set(tutorials.map(t => t.data.category))];
     overflow: hidden;
   }
 </style>
+

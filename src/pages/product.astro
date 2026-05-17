@@ -2,6 +2,7 @@
 import Layout from '../layouts/Layout.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
+import BottomNav from '../components/BottomNav.astro';
 import products from '../data/products.json';
 
 const categories = [...new Set(products.map(p => p.category))];
@@ -146,6 +147,7 @@ const productImages: Record<string, string> = {
   </main>
 
   <Footer />
+  <BottomNav />
 </Layout>
 
 <script>
@@ -194,3 +196,4 @@ const productImages: Record<string, string> = {
     overflow: hidden;
   }
 </style>
+

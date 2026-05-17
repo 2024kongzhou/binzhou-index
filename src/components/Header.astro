@@ -1,135 +1,304 @@
----
+﻿---
 const navItems = [
   { name: '首页', href: '/' },
-  { name: '滨州地名志', href: '/place' },
+  { name: '地名志', href: '/place' },
   { name: '文章博客', href: '/blog' },
   { name: '装修教程', href: '/tutorial' },
   { name: '产品展示', href: '/product' },
-  { name: '小区索引', href: '/community' },
 ];
 ---
 
-<header class="bg-white shadow-sm">
-  <div class="max-w-7xl mx-auto px-4 py-4">
-    <div class="flex items-center justify-between">
-      <a href="/" class="text-2xl font-bold text-primary">滨州索引</a>
+<header id="main-header" class="main-header">
+  <div class="header-inner">
+    <a href="/" class="header-logo">滨州索引</a>
 
-      <nav class="hidden md:flex space-x-8">
-        {navItems.map(item => (
-          <a href={item.href} class="text-gray-700 hover:text-primary transition">
-            {item.name}
-          </a>
-        ))}
-      </nav>
+    <nav class="header-nav desktop-nav">
+      {navItems.map(item => (
+        <a href={item.href} class="nav-link">{item.name}</a>
+      ))}
+    </nav>
 
-      <!-- Mobile menu button -->
-      <button id="mobile-menu-btn" class="md:hidden p-2 text-gray-700 hover:text-primary" aria-label="打开菜单">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
-        </svg>
-      </button>
-
-      <div id="weather-calendar" class="text-sm text-gray-600 hidden md:block">
-        <!-- 天气和日期将在这里显示 -->
-      </div>
-    </div>
-      <!-- Mobile menu panel -->
-      <div id="mobile-menu" class="hidden md:hidden border-t mt-4 pt-4">
-        <nav class="flex flex-col space-y-3">
-          {navItems.map(item => (
-            <a href={item.href} class="text-gray-700 hover:text-primary transition py-2 border-b border-gray-100">
-              {item.name}
-            </a>
-          ))}
-        </nav>
-      </div>
-    </div>
+    <button id="hamburger-btn" class="hamburger-btn" aria-label="打开菜单">
+      <span class="hamburger-line"></span>
+      <span class="hamburger-line"></span>
+      <span class="hamburger-line"></span>
+    </button>
   </div>
 </header>
 
+<!-- Full Screen Menu Overlay -->
+<div id="menu-overlay" class="menu-overlay">
+  <nav class="menu-nav">
+    {navItems.map((item, i) => (
+      <a href={item.href} class="menu-link" style={`--delay: ${i * 0.1}s`}>
+        <span class="menu-link-text">{item.name}</span>
+        <span class="menu-link-line"></span>
+      </a>
+    ))}
+  </nav>
+</div>
+
+<style>
+  .main-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    padding: 1.25rem 1.5rem;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    background: transparent;
+  }
+
+  .main-header.scrolled {
+    padding: 0.75rem 1.5rem;
+    background: rgba(253, 248, 243, 0.88);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(196, 149, 106, 0.15);
+    box-shadow: 0 4px 20px rgba(44, 36, 32, 0.06);
+  }
+
+  .main-header.hidden {
+    transform: translateY(-100%);
+  }
+
+  .header-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .header-logo {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 1.5rem;
+    font-weight: 900;
+    background: linear-gradient(135deg, #C4956A, #D4AF37);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-decoration: none;
+    transition: opacity 0.3s;
+  }
+
+  .header-logo:hover {
+    opacity: 0.8;
+  }
+
+  .desktop-nav {
+    display: none;
+    gap: 2rem;
+  }
+
+  @media (min-width: 768px) {
+    .desktop-nav {
+      display: flex;
+    }
+  }
+
+  .nav-link {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #6B5D54;
+    text-decoration: none;
+    position: relative;
+    transition: color 0.3s;
+    padding: 0.25rem 0;
+  }
+
+  .nav-link::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: linear-gradient(90deg, #C4956A, #D4AF37);
+    border-radius: 1px;
+    transition: width 0.3s;
+  }
+
+  .nav-link:hover {
+    color: #C4956A;
+  }
+
+  .nav-link:hover::after {
+    width: 100%;
+  }
+
+  /* Hamburger Button */
+  .hamburger-btn {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 44px;
+    height: 44px;
+    background: none;
+    border: 1px solid rgba(196, 149, 106, 0.2);
+    border-radius: 12px;
+    cursor: pointer;
+    gap: 5px;
+    transition: all 0.3s;
+    z-index: 1001;
+  }
+
+  @media (min-width: 768px) {
+    .hamburger-btn {
+      display: none;
+    }
+  }
+
+  .hamburger-btn:hover {
+    border-color: rgba(196, 149, 106, 0.4);
+  }
+
+  .hamburger-line {
+    display: block;
+    width: 20px;
+    height: 2px;
+    background: #C4956A;
+    border-radius: 1px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transform-origin: center;
+  }
+
+  .hamburger-btn.active .hamburger-line:nth-child(1) {
+    transform: translateY(7px) rotate(45deg);
+  }
+
+  .hamburger-btn.active .hamburger-line:nth-child(2) {
+    opacity: 0;
+    transform: scaleX(0);
+  }
+
+  .hamburger-btn.active .hamburger-line:nth-child(3) {
+    transform: translateY(-7px) rotate(-45deg);
+  }
+
+  /* Menu Overlay */
+  .menu-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 999;
+    background: rgba(253, 248, 243, 0.98);
+    backdrop-filter: blur(30px);
+    -webkit-backdrop-filter: blur(30px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .menu-overlay.active {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .menu-nav {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2rem;
+  }
+
+  .menu-link {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-decoration: none;
+    opacity: 0;
+    transform: translateY(30px);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    transition-delay: var(--delay);
+  }
+
+  .menu-overlay.active .menu-link {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .menu-link-text {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 2rem;
+    font-weight: 700;
+    color: #2C2420;
+    transition: color 0.3s;
+  }
+
+  .menu-link:hover .menu-link-text {
+    color: #C4956A;
+  }
+
+  .menu-link-line {
+    display: block;
+    width: 0;
+    height: 2px;
+    background: linear-gradient(90deg, #C4956A, #D4AF37);
+    border-radius: 1px;
+    margin-top: 0.5rem;
+    transition: width 0.3s;
+  }
+
+  .menu-link:hover .menu-link-line {
+    width: 60px;
+  }
+</style>
+
 <script>
-  // 加载天气和日期
-  async function loadWeatherCalendar() {
-    const container = document.getElementById('weather-calendar');
-    if (!container) return;
+  const header = document.getElementById('main-header');
+  const hamburgerBtn = document.getElementById('hamburger-btn');
+  const menuOverlay = document.getElementById('menu-overlay');
 
-    try {
-      const now = new Date();
-      const weather = await getWeather(37.38, 117.97); // 滨州坐标
+  // Smart hide/show on scroll
+  let lastScrollY = window.scrollY;
+  let ticking = false;
 
-      container.innerHTML = `
-        <div class="flex items-center gap-3">
-          <span>${formatDate(now)}</span>
-          ${weather ? `<span class="flex items-center gap-1"><span>${weather.icon}</span><span>${weather.temp}°C</span></span>` : ''}
-        </div>
-      `;
-    } catch (e) {
-      console.error('加载天气失败:', e);
+  function updateHeader() {
+    const currentScrollY = window.scrollY;
+
+    // Add scrolled class
+    if (currentScrollY > 50) {
+      header?.classList.add('scrolled');
+    } else {
+      header?.classList.remove('scrolled');
     }
-  }
 
-  function formatDate(date) {
-    const options = {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      weekday: 'short'
-    };
-    return date.toLocaleDateString('zh-CN', options);
-  }
-
-  async function getWeather(lat, lon) {
-    try {
-      // 使用 Open-Meteo 免费天气 API
-      const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`);
-      if (!res.ok) return null;
-      const data = await res.json();
-      const temp = data.current_weather?.temperature;
-      const code = data.current_weather?.weathercode;
-      
-      if (temp !== undefined) {
-        return {
-          temp: Math.round(temp),
-          icon: getWeatherIcon(code)
-        };
-      }
-      return null;
-    } catch {
-      return null;
+    // Smart hide: hide on scroll down, show on scroll up
+    if (currentScrollY > lastScrollY && currentScrollY > 200) {
+      header?.classList.add('hidden');
+    } else {
+      header?.classList.remove('hidden');
     }
+
+    lastScrollY = currentScrollY;
+    ticking = false;
   }
 
-  function getWeatherIcon(code) {
-    // WMO Weather interpretation codes
-    const icons = {
-      0: '☀️',      // Clear sky
-      1: '🌤️',      // Mainly clear
-      2: '⛅',      // Partly cloudy
-      3: '☁️',      // Overcast
-      45: '🌫️',     // Foggy
-      48: '🌫️',     // Depositing rime fog
-      51: '🌦️',     // Light drizzle
-      53: '🌦️',     // Moderate drizzle
-      55: '🌧️',     // Dense drizzle
-      61: '🌧️',     // Slight rain
-      63: '🌧️',     // Moderate rain
-      65: '🌧️',     // Heavy rain
-      71: '🌨️',     // Slight snow
-      73: '🌨️',     // Moderate snow
-      75: '❄️',     // Heavy snow
-      95: '⛈️',     // Thunderstorm
-    };
-    return icons[code] || '🌡️';
-  }
+  window.addEventListener('scroll', () => {
+    if (!ticking) {
+      requestAnimationFrame(updateHeader);
+      ticking = true;
+    }
+  });
 
-  loadWeatherCalendar();
+  // Hamburger menu toggle
+  hamburgerBtn?.addEventListener('click', () => {
+    hamburgerBtn.classList.toggle('active');
+    menuOverlay?.classList.toggle('active');
+    document.body.style.overflow = menuOverlay?.classList.contains('active') ? 'hidden' : '';
+  });
 
-  // Mobile menu toggle
-  const mobileMenuBtn = document.getElementById('mobile-menu-btn');
-  const mobileMenu = document.getElementById('mobile-menu');
-  if (mobileMenuBtn && mobileMenu) {
-    mobileMenuBtn.addEventListener('click', () => {
-      mobileMenu.classList.toggle('hidden');
+  // Close menu on link click
+  menuOverlay?.querySelectorAll('.menu-link').forEach(link => {
+    link.addEventListener('click', () => {
+      hamburgerBtn?.classList.remove('active');
+      menuOverlay?.classList.remove('active');
+      document.body.style.overflow = '';
     });
-  }
+  });
 </script>

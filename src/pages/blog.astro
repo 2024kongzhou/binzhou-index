@@ -3,6 +3,7 @@ import { getCollection } from 'astro:content';
 import Layout from '../layouts/Layout.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
+import BottomNav from '../components/BottomNav.astro';
 
 const posts = await getCollection('blog');
 const sortedPosts = posts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
@@ -83,6 +84,7 @@ const categories = [...new Set(posts.map(post => post.data.category))];
   </main>
 
   <Footer />
+  <BottomNav />
 </Layout>
 
 <script>
@@ -137,3 +139,4 @@ const categories = [...new Set(posts.map(post => post.data.category))];
     overflow: hidden;
   }
 </style>
+

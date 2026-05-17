@@ -1,7 +1,8 @@
----
+﻿---
 import Layout from '../layouts/Layout.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
+import BottomNav from '../components/BottomNav.astro';
 import villagesData from '../data/villages.json';
 
 const counties = [...new Set(villagesData.map(v => v.county))].sort();
@@ -420,6 +421,7 @@ const totalVillages = villagesData.length;
     </section>
   </main>
   <Footer />
+  <BottomNav />
 </Layout>
 
 <script define:vars={{ villagesData, villagesPerPage, townsByCounty }}>
@@ -509,3 +511,4 @@ const totalVillages = villagesData.length;
   nextPageBtn.addEventListener('click', () => { const totalPages = Math.ceil(filteredVillages.length / villagesPerPage); if (currentPage < totalPages) { currentPage++; renderVillages(); updatePagination(); window.scrollTo({ top: 0, behavior: 'smooth' }); } });
   updatePagination();
 </script>
+

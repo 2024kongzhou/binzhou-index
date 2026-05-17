@@ -1,7 +1,8 @@
----
+﻿---
 import Layout from '../layouts/Layout.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
+import BottomNav from '../components/BottomNav.astro';
 import communities from '../data/communities.json';
 
 // 按建成年份分组
@@ -71,6 +72,7 @@ const sortedGroups = Object.entries(grouped).sort(([a], [b]) => {
     </div>
   </main>
   <Footer />
+  <BottomNav />
 </Layout>
 
 <script define:vars={{ communities }}>
@@ -102,3 +104,4 @@ const sortedGroups = Object.entries(grouped).sort(([a], [b]) => {
     noResults.classList.toggle('hidden', visibleCount > 0);
   }
 </script>
+
