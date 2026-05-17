@@ -1,0 +1,79 @@
+﻿---
+import Layout from '../layouts/Layout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import BottomNav from '../components/BottomNav.astro';
+---
+
+<Layout title="关于我们 - 滨州索引">
+  <Header />
+  
+  <main class="max-w-4xl mx-auto px-4 py-12">
+    <h1 class="text-3xl font-bold text-gray-800 mb-8">关于我们</h1>
+    
+    <div class="prose prose-lg max-w-none">
+      <section class="mb-8">
+        <h2 class="text-xl font-bold text-gray-700 mb-4">网站简介</h2>
+        <p class="text-gray-600 mb-4">
+          滨州索引是一个专注于滨州地区地名文化、房产信息、装修服务的综合性门户网站。
+          我们致力于记录和传承滨州的地名文化，为市民提供便捷的房产信息查询和装修服务指南。
+        </p>
+      </section>
+
+      <section class="mb-8">
+        <h2 class="text-xl font-bold text-gray-700 mb-4">我们的使命</h2>
+        <ul class="list-disc list-inside text-gray-600 space-y-2">
+          <li>保护和传承滨州地名文化，记录每个村庄的历史沿革</li>
+          <li>提供准确的房产信息，帮助市民了解滨州小区情况</li>
+          <li>分享实用的装修知识，提升家居生活品质</li>
+          <li>打造滨州本地化的信息服务平台</li>
+        </ul>
+      </section>
+
+      <section class="mb-8">
+        <h2 class="text-xl font-bold text-gray-700 mb-4">核心服务</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="bg-gray-50 p-4 rounded-lg">
+            <h3 class="font-bold text-gray-800 mb-2">🏘️ 滨州地名志</h3>
+            <p class="text-gray-600 text-sm">收录滨州7县区4800+村庄的历史沿革、姓氏来源、建村年代等信息</p>
+          </div>
+          <div class="bg-gray-50 p-4 rounded-lg">
+            <h3 class="font-bold text-gray-800 mb-2">🏢 小区索引</h3>
+            <p class="text-gray-600 text-sm">提供滨州各区域小区信息，包括价格、地址、开发商等数据</p>
+          </div>
+          <div class="bg-gray-50 p-4 rounded-lg">
+            <h3 class="font-bold text-gray-800 mb-2">📚 装修教程</h3>
+            <p class="text-gray-600 text-sm">窗帘选购、安装技巧、面料知识等实用装修指南</p>
+          </div>
+          <div class="bg-gray-50 p-4 rounded-lg">
+            <h3 class="font-bold text-gray-800 mb-2">🛍️ 产品展示</h3>
+            <p class="text-gray-600 text-sm">窗帘、墙布、软装等家居产品展示和优惠促销</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="mb-8">
+        <h2 class="text-xl font-bold text-gray-700 mb-4">联系我们</h2>
+        <div class="bg-gray-50 p-6 rounded-lg">
+          <p class="text-gray-600 mb-2"><strong>地址：</strong>滨州市黄河十一路渤海二路豪德广场西一街70号</p>
+          <p class="text-gray-600 mb-2"><strong>电话：</strong>13326280320</p>
+          <p class="text-gray-600"><strong>服务时间：</strong>周一至周日 9:00-18:00</p>
+        </div>
+      </section>
+
+      <section>
+        <h2 class="text-xl font-bold text-gray-700 mb-4">免责声明</h2>
+        <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4">
+          <p class="text-yellow-800 text-sm">
+            本网站所有信息仅供参考，不构成任何投资或购买建议。
+            地名志数据来源于公开出版的志书文献，我们不承担原始数据准确性责任。
+            房产价格等信息会随市场变化，请以实际交易为准。
+          </p>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <Footer />
+  <BottomNav />
+</Layout>
