@@ -2,15 +2,16 @@
 # -*- coding: utf-8 -*-
 """
 滨州索引 - 每日推文自动生成脚本（本地运行版）
-运行方式: python daily_post_generator.py
-定时任务: crontab -e 添加 0 8 * * * cd /path/to/project && python daily_post_generator.py >> /var/log/posts.log 2>&1
+用法: python3 daily_post_generator.py
+定时: crontab -e 添加 0 8 * * * cd /path && python3 daily_post_generator.py >> /var/log/posts.log 2>&1
 """
 
-import os, sys, json, time, random, smtplib, base64, requests, re, subprocess
+import os, sys, json, random, smtplib, base64, requests, re, subprocess
 from datetime import datetime
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
+# 从环境变量读取配置，不在代码中硬编码任何密钥
 CONFIG = {
     "gemini_api_key": os.getenv("GEMINI_API_KEY", ""),
     "groq_api_key": os.getenv("GROQ_API_KEY", ""),
@@ -19,9 +20,6 @@ CONFIG = {
     "gmail_user": os.getenv("GMAIL_USER", ""),
     "gmail_password": os.getenv("GMAIL_PASSWORD", ""),
     "notify_email": os.getenv("NOTIFY_EMAIL", ""),
-    "github_owner": "2024kongzhou",
-    "github_repo": "binzhou-index",
-    "github_branch": "main",
     "blog_url": "https://keyi.de5.net",
     "author": "滨州索引",
 }
@@ -104,6 +102,7 @@ class ContentGenerator:
         return self._call_ai(prompt)
     
     def _call_ai(self, prompt):
+        # 尝试Gemini
         try:
             r = requests.post(f"{self.base_url}?key={self.api_key}", 
                 json={"contents":[{"parts":[{"text":prompt}]}],
@@ -114,6 +113,7 @@ class ContentGenerator:
             return self._parse(text)
         except Exception as e:
             print(f"Gemini失败: {e}")
+        # 降级到Groq
         try:
             r = requests.post("https://api.groq.com/openai/v1/chat/completions",
                 headers={"Authorization":f"Bearer {CONFIG['groq_api_key']}","Content-Type":"application/json"},
@@ -235,8 +235,8 @@ def git_push(files, message):
         for f in files:
             subprocess.run(["git","add",f], check=True, capture_output=True)
         subprocess.run(["git","commit","-m",message], check=True, capture_output=True)
-        subprocess.run(["git","push","origin",CONFIG["github_branch"]], check=True, capture_output=True)
-        print("✅ 已推送到GitHub")
+        subprocess.run(["git","push","origin","main"], check=True, capture_output=True)
+        print("✅ 已推送到GitHub，网站将自动更新")
         return True
     except subprocess.CalledProcessError as e:
         print(f"Git推送失败: {e.stderr.decode()}")
@@ -276,7 +276,7 @@ def main():
         git_push([cf, rf], f"📝 每日推文 - {today}")
         
         mail.send(posts, True)
-        print(f"\n✅ 完成！\n📝 {cp['title']}\n📝 {rp['title']}")
+        print(f"\n✅ 完成！文章已推送到 {CONFIG['blog_url']}")
     except Exception as e:
         print(f"\n❌ 失败: {e}")
         try: EmailNotifier(CONFIG["gmail_user"],CONFIG["gmail_password"],CONFIG["notify_email"]).send([],False)
