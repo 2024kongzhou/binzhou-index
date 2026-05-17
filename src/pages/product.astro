@@ -5,6 +5,18 @@ import Footer from '../components/Footer.astro';
 import products from '../data/products.json';
 
 const categories = [...new Set(products.map(p => p.category))];
+
+// 产品图片映射
+const productImages: Record<string, string> = {
+  '简约现代窗帘': '/images/products/modern-curtain.svg',
+  '中式复古窗帘': '/images/products/chinese-curtain.svg',
+  '雪纺纱帘': '/images/products/sheer-curtain.svg',
+  '高档绒布窗帘': '/images/products/velvet-curtain.svg',
+  '现代简约墙布': '/images/products/modern-wallpaper.svg',
+  '欧式墙布': '/images/products/european-wallpaper.svg',
+  '抱枕靠垫': '/images/products/pillow.svg',
+  '床品四件套': '/images/products/bedding.svg'
+};
 ---
 
 <Layout title="产品展示 - 滨州索引" description="窗帘、墙布、软装产品展示，简约现代、中式复古、高档绒布等多种风格">
@@ -61,13 +73,13 @@ const categories = [...new Set(products.map(p => p.category))];
       {products.map(product => (
         <article class="product-card bg-white rounded-lg shadow overflow-hidden hover:shadow-lg transition" data-category={product.category}>
           <!-- 产品图片 -->
-          <div class="h-48 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center relative">
-            <div class="text-center text-gray-400">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-              <span class="text-sm">{product.name}</span>
-            </div>
+          <div class="h-48 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center relative overflow-hidden">
+            <img 
+              src={productImages[product.name] || '/images/products/modern-curtain.svg'} 
+              alt={product.name}
+              class="w-full h-full object-cover"
+              loading="lazy"
+            />
             <span class="absolute top-2 right-2 px-2 py-1 bg-primary text-white text-xs rounded">
               {product.category}
             </span>
@@ -91,7 +103,7 @@ const categories = [...new Set(products.map(p => p.category))];
             <div class="flex gap-2">
               <a href="tel:13326280320"
                 class="flex-1 bg-primary text-white py-2 rounded text-sm font-medium hover:bg-primary/90 transition text-center block">
-                📞 咨询购买
+                咨询购买
               </a>
               <a href="/deals"
                 class="px-3 py-2 border border-gray-300 rounded text-sm text-gray-700 hover:bg-gray-50 transition text-center block">

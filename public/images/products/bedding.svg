@@ -1,0 +1,18 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300">
+  <defs>
+    <linearGradient id="grad8" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ccfbf1"/>
+      <stop offset="100%" style="stop-color:#99f6e4"/>
+    </linearGradient>
+  </defs>
+  <rect width="400" height="300" fill="url(#grad8)"/>
+  <!-- 床上用品图标 -->
+  <rect x="100" y="100" width="200" height="100" fill="#14b8a6" opacity="0.3" rx="8"/>
+  <rect x="110" y="110" width="180" height="80" fill="#0d9488" opacity="0.4" rx="4"/>
+  <rect x="120" y="120" width="70" height="60" fill="#0f766e" opacity="0.3" rx="4"/>
+  <rect x="200" y="120" width="80" height="60" fill="#0f766e" opacity="0.3" rx="4"/>
+  <line x1="190" y1="120" x2="190" y2="180" stroke="#115e59" stroke-width="2" opacity="0.5"/>
+  <path d="M100 100 L120 80 L320 80 L300 100" fill="#5eead4" opacity="0.4"/>
+  <text x="200" y="240" text-anchor="middle" font-family="Arial, sans-serif" font-size="24" font-weight="bold" fill="#0f766e">精品床品</text>
+  <text x="200" y="270" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#64748b">Bedding Set</text>
+</svg>

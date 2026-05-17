@@ -1,0 +1,18 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300">
+  <defs>
+    <linearGradient id="grad2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#fef3c7"/>
+      <stop offset="100%" style="stop-color:#fde68a"/>
+    </linearGradient>
+  </defs>
+  <rect width="400" height="300" fill="url(#grad2)"/>
+  <!-- 中式窗帘图标 -->
+  <rect x="120" y="60" width="160" height="140" fill="#d97706" opacity="0.3" rx="4"/>
+  <rect x="130" y="70" width="60" height="120" fill="#b45309" opacity="0.6" rx="2"/>
+  <rect x="210" y="70" width="60" height="120" fill="#b45309" opacity="0.6" rx="2"/>
+  <circle cx="160" cy="110" r="15" fill="#f59e0b" opacity="0.8"/>
+  <circle cx="240" cy="150" r="15" fill="#f59e0b" opacity="0.8"/>
+  <rect x="110" y="50" width="180" height="10" fill="#92400e" rx="2"/>
+  <text x="200" y="240" text-anchor="middle" font-family="Arial, sans-serif" font-size="24" font-weight="bold" fill="#92400e">中式复古窗帘</text>
+  <text x="200" y="270" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#64748b">Chinese Style</text>
+</svg>

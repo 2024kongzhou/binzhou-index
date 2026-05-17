@@ -1,0 +1,18 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300">
+  <defs>
+    <linearGradient id="grad4" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#fecaca"/>
+      <stop offset="100%" style="stop-color:#fca5a5"/>
+    </linearGradient>
+  </defs>
+  <rect width="400" height="300" fill="url(#grad4)"/>
+  <!-- 绒布窗帘图标 -->
+  <rect x="120" y="60" width="160" height="140" fill="#dc2626" opacity="0.3" rx="4"/>
+  <rect x="130" y="70" width="60" height="120" fill="#b91c1c" opacity="0.7" rx="2"/>
+  <rect x="210" y="70" width="60" height="120" fill="#b91c1c" opacity="0.7" rx="2"/>
+  <path d="M130 80 Q160 100 190 80" stroke="#991b1b" stroke-width="2" fill="none"/>
+  <path d="M210 100 Q240 120 270 100" stroke="#991b1b" stroke-width="2" fill="none"/>
+  <rect x="110" y="50" width="180" height="10" fill="#7f1d1d" rx="2"/>
+  <text x="200" y="240" text-anchor="middle" font-family="Arial, sans-serif" font-size="24" font-weight="bold" fill="#991b1b">高档绒布窗帘</text>
+  <text x="200" y="270" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#64748b">Velvet Curtain</text>
+</svg>
