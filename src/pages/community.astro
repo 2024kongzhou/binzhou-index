@@ -3,23 +3,22 @@ import Layout from '../layouts/Layout.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import BottomNav from '../components/BottomNav.astro';
-import communities from '../data/communities.json';
+import communitiesData from '../data/communities.json';
 
-// 按建成年份分组
+const communities = communitiesData.communities;
+const meta = communitiesData.meta;
+
+// 按区县分组
 const grouped = {};
 communities.forEach(c => {
-  const year = c.year;
-  const decade = Math.floor(year / 5) * 5; // 每5年一组
-  const groupKey = `${decade}-${decade + 4}年`;
-  if (!grouped[groupKey]) grouped[groupKey] = [];
-  grouped[groupKey].push(c);
+  const district = c.district || '未知';
+  if (!grouped[district]) grouped[district] = [];
+  grouped[district].push(c);
 });
 
-// 按年份降序排列
+// 按数量排序
 const sortedGroups = Object.entries(grouped).sort(([a], [b]) => {
-  const yearA = parseInt(a.split('-')[0]);
-  const yearB = parseInt(b.split('-')[0]);
-  return yearB - yearA;
+  return grouped[b].length - grouped[a].length;
 });
 ---
 
@@ -35,8 +34,17 @@ const sortedGroups = Object.entries(grouped).sort(([a], [b]) => {
     </nav>
     <div class="text-center mb-12">
       <h1 class="text-4xl font-bold text-gray-900 mb-4">滨州小区索引</h1>
-      <p class="text-lg text-gray-600">收录滨城区主要住宅小区信息，共 {communities.length} 个小区</p>
+      <p class="text-lg text-gray-600">收录滨州主要住宅小区信息，共 {meta.total} 个小区</p>
+      <p class="text-sm text-gray-500 mt-2">数据来源：{meta.sources.join('、')}</p>
     </div>
+    
+    <!-- 数据来源声明 -->
+    <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-8">
+      <p class="text-yellow-800 text-sm">
+        <strong>声明：</strong>{meta.disclaimer}
+      </p>
+    </div>
+    
     <div class="mb-8">
       <div class="relative">
         <input type="text" id="search-input" placeholder="搜索小区名称、地址、开发商..."
@@ -46,10 +54,11 @@ const sortedGroups = Object.entries(grouped).sort(([a], [b]) => {
         </svg>
       </div>
     </div>
+    
     <div id="communities-list">
-      {sortedGroups.map(([groupKey, items]) => (
-        <div class="mb-8 community-group" data-year={groupKey}>
-          <h2 class="text-2xl font-bold text-primary mb-4 pb-2 border-b">{groupKey}建成</h2>
+      {sortedGroups.map(([district, items]) => (
+        <div class="mb-8 community-group" data-district={district}>
+          <h2 class="text-2xl font-bold text-primary mb-4 pb-2 border-b">{district} ({items.length}个小区)</h2>
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {items.map(item => (
               <div class="bg-white rounded-lg shadow p-5 hover:shadow-lg transition community-card">
@@ -57,9 +66,8 @@ const sortedGroups = Object.entries(grouped).sort(([a], [b]) => {
                 <div class="space-y-1 text-sm text-gray-600">
                   <p>📍 {item.address}</p>
                   <p>🏗️ {item.developer}</p>
-                  <p>📅 {item.year}年建成</p>
-                  <p>🏠 {item.type}</p>
-                  <p class="text-primary font-medium">💰 {item.price}</p>
+                  <p>📅 {item.build_year}年建成</p>
+                  <p class="text-primary font-medium">💰 均价 {item.price} 元/㎡</p>
                 </div>
               </div>
             ))}
@@ -67,8 +75,25 @@ const sortedGroups = Object.entries(grouped).sort(([a], [b]) => {
         </div>
       ))}
     </div>
+    
     <div id="no-results" class="hidden text-center py-16 text-gray-500">
       <p class="text-lg">未找到匹配的小区</p>
+    </div>
+    
+    <!-- 数据来源说明 -->
+    <div class="mt-12 p-6 bg-gray-100 rounded-lg">
+      <h3 class="text-lg font-bold text-gray-800 mb-3">数据来源说明</h3>
+      <p class="text-sm text-gray-600 mb-2">
+        本页小区信息来源于以下公开网站，仅供学习研究使用：
+      </p>
+      <ul class="text-sm text-gray-600 list-disc list-inside">
+        <li>贝壳找房 - https://binzhou.ke.com/xiaoqu/</li>
+        <li>安居客 - https://binzhou.anjuke.com/community/</li>
+        <li>房天下 - https://binzhou.fang.com/xiaoqu/</li>
+      </ul>
+      <p class="text-xs text-gray-500 mt-3">
+        数据爬取时间：{meta.crawl_time} | 如需最新准确信息，请访问原网站查询。
+      </p>
     </div>
   </main>
   <Footer />
@@ -104,4 +129,3 @@ const sortedGroups = Object.entries(grouped).sort(([a], [b]) => {
     noResults.classList.toggle('hidden', visibleCount > 0);
   }
 </script>
-

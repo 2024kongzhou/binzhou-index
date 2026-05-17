@@ -1,0 +1,100 @@
+﻿---
+import Layout from '../layouts/Layout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import BottomNav from '../components/BottomNav.astro';
+---
+
+<Layout title="数据来源声明 - 滨州索引">
+  <Header />
+  
+  <main class="max-w-4xl mx-auto px-4 py-12">
+    <h1 class="text-3xl font-bold text-gray-800 mb-8">数据来源声明</h1>
+    
+    <div class="prose prose-lg max-w-none">
+      <section class="mb-8">
+        <h2 class="text-xl font-bold text-gray-700 mb-4">一、地名志数据来源</h2>
+        <p class="text-gray-600 mb-4">
+          本网站收录的滨州市村庄地名信息，均来源于以下官方出版的志书文献：
+        </p>
+        <ul class="list-disc list-inside text-gray-600 space-y-2">
+          <li><strong>《惠民县志》</strong>（1985年版）- 惠民县地方史志编纂委员会编</li>
+          <li><strong>《滨州市志》</strong>（1990年版）- 滨州市地方史志编纂委员会编</li>
+          <li><strong>《沾化县志》</strong> - 沾化县地方史志编纂委员会编</li>
+          <li><strong>《无棣县志》</strong> - 无棣县地方史志编纂委员会编</li>
+          <li><strong>《阳信县志》</strong> - 阳信县地方史志编纂委员会编</li>
+          <li><strong>《邹平县志》</strong> - 邹平县地方史志编纂委员会编</li>
+          <li><strong>《博兴县志》</strong> - 博兴县地方史志编纂委员会编</li>
+        </ul>
+      </section>
+
+      <section class="mb-8">
+        <h2 class="text-xl font-bold text-gray-700 mb-4">二、数据内容说明</h2>
+        <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-4">
+          <p class="text-yellow-800">
+            <strong>重要声明：</strong>本网站所有历史沿革、建村年代、姓氏来源等信息，均以上述官方志书记载为准。
+            部分村庄因年代久远，志书记载可能存在差异，我们已尽可能保持原始记录的准确性。
+          </p>
+        </div>
+        <p class="text-gray-600 mb-4">
+          具体数据内容包括：
+        </p>
+        <ul class="list-disc list-inside text-gray-600 space-y-2">
+          <li>村庄名称及曾用名</li>
+          <li>建村年代及历史沿革</li>
+          <li>姓氏来源及郡望</li>
+          <li>地理位置及行政区划</li>
+          <li>1985年人口统计数据（部分村庄）</li>
+        </ul>
+      </section>
+
+      <section class="mb-8">
+        <h2 class="text-xl font-bold text-gray-700 mb-4">三、数据使用规范</h2>
+        <div class="bg-blue-50 border-l-4 border-blue-400 p-4 mb-4">
+          <p class="text-blue-800">
+            本网站数据仅供学术研究、历史文化传承参考使用。如需引用，请注明出处。
+          </p>
+        </div>
+        <p class="text-gray-600">
+          引用格式建议：村庄名称，载于《XX县志》（版本年），滨州索引网站整理。
+        </p>
+      </section>
+
+      <section class="mb-8">
+        <h2 class="text-xl font-bold text-gray-700 mb-4">四、免责声明</h2>
+        <ul class="list-disc list-inside text-gray-600 space-y-2">
+          <li>本网站整理的历史资料来源于公开出版的志书文献，不承担原始数据准确性责任。</li>
+          <li>部分村庄信息可能因历史变迁与现状存在差异，请以最新官方资料为准。</li>
+          <li>民间传说部分仅作文化传承参考，不代表历史事实。</li>
+          <li>如发现数据错误或有补充资料，欢迎联系我们。</li>
+        </ul>
+      </section>
+
+      <section class="mb-8">
+        <h2 class="text-xl font-bold text-gray-700 mb-4">五、版权说明</h2>
+        <p class="text-gray-600">
+          本网站为公益性文化项目，旨在保护和传承滨州地名文化。
+          原始志书版权归各地方史志编纂委员会所有。
+        </p>
+      </section>
+
+      <section>
+        <h2 class="text-xl font-bold text-gray-700 mb-4">六、联系方式</h2>
+        <p class="text-gray-600">
+          如有数据纠错或合作事宜，请联系：<br/>
+          📞 电话：13326280320<br/>
+          📍 地址：滨州市黄河十一路渤海二路豪德广场西一街70号
+        </p>
+      </section>
+    </div>
+
+    <div class="mt-12 p-6 bg-gray-100 rounded-lg">
+      <p class="text-sm text-gray-500 text-center">
+        最后更新：2026年5月 | 滨州索引 - 传承地名文化，留住乡愁记忆
+      </p>
+    </div>
+  </main>
+
+  <Footer />
+  <BottomNav />
+</Layout>

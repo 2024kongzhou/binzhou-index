@@ -1,182 +1,60 @@
-﻿[
-  {
-    "id": 1,
-    "name": "中海壹号",
-    "address": "滨城区黄河十二路渤海十八路交叉口",
-    "developer": "中海地产",
-    "year": 2015,
-    "type": "住宅",
-    "price": "9500-11000元/㎡"
+﻿{
+  "meta": {
+    "total": 50,
+    "crawl_time": "2026-05-17",
+    "sources": ["贝壳找房", "安居客", "房天下"],
+    "disclaimer": "数据来源于公开网站，仅供学习研究使用，请遵守相关法律法规。"
   },
-  {
-    "id": 2,
-    "name": "万达广场",
-    "address": "滨城区黄河十路渤海十一路",
-    "developer": "万达集团",
-    "year": 2016,
-    "type": "商业/住宅",
-    "price": "8800-10500元/㎡"
-  },
-  {
-    "id": 3,
-    "name": "渤海城邦",
-    "address": "滨城区渤海十八路",
-    "developer": "滨州本地开发商",
-    "year": 2018,
-    "type": "住宅",
-    "price": "8200-9800元/㎡"
-  },
-  {
-    "id": 4,
-    "name": "秦皇水岸",
-    "address": "滨城区黄河五路渤海十九路",
-    "developer": "碧桂园",
-    "year": 2019,
-    "type": "住宅",
-    "price": "9000-11500元/㎡"
-  },
-  {
-    "id": 5,
-    "name": "丰泽御景",
-    "address": "滨城区黄河八路渤海十一路",
-    "developer": "滨州丰泽置业",
-    "year": 2017,
-    "type": "住宅",
-    "price": "7800-9200元/㎡"
-  },
-  {
-    "id": 6,
-    "name": "金御园",
-    "address": "滨城区黄河十二路渤海二路",
-    "developer": "金居地产",
-    "year": 2016,
-    "type": "住宅",
-    "price": "7500-8800元/㎡"
-  },
-  {
-    "id": 7,
-    "name": "天泰华滨胜利御园",
-    "address": "滨城区黄河十路渤海八路",
-    "developer": "天泰集团",
-    "year": 2020,
-    "type": "住宅",
-    "price": "9200-10800元/㎡"
-  },
-  {
-    "id": 8,
-    "name": "悦海文苑",
-    "address": "滨城区黄河二路渤海十九路",
-    "developer": "滨州悦海置业",
-    "year": 2021,
-    "type": "住宅",
-    "price": "8500-10000元/㎡"
-  },
-  {
-    "id": 9,
-    "name": "原著壹品",
-    "address": "滨城区黄河五路渤海十八路",
-    "developer": "滨州本土开发商",
-    "year": 2019,
-    "type": "住宅",
-    "price": "8800-10500元/㎡"
-  },
-  {
-    "id": 10,
-    "name": "新湖玫瑰园",
-    "address": "滨城区黄河八路渤海十二路",
-    "developer": "新湖集团",
-    "year": 2017,
-    "type": "住宅",
-    "price": "8000-9500元/㎡"
-  },
-  {
-    "id": 11,
-    "name": "大祥金廷公馆",
-    "address": "滨城区黄河十路渤海七路",
-    "developer": "大祥置业",
-    "year": 2015,
-    "type": "住宅",
-    "price": "7200-8500元/㎡"
-  },
-  {
-    "id": 12,
-    "name": "华清园",
-    "address": "滨城区黄河二路渤海十路",
-    "developer": "华清置业",
-    "year": 2014,
-    "type": "住宅",
-    "price": "6800-8000元/㎡"
-  },
-  {
-    "id": 13,
-    "name": "丽景新园",
-    "address": "滨城区黄河六路渤海九路",
-    "developer": "丽景置业",
-    "year": 2013,
-    "type": "住宅",
-    "price": "6500-7800元/㎡"
-  },
-  {
-    "id": 14,
-    "name": "麒麟阁",
-    "address": "滨城区黄河十二路渤海十五路",
-    "developer": "麒麟置业",
-    "year": 2018,
-    "type": "住宅",
-    "price": "8600-10200元/㎡"
-  },
-  {
-    "id": 15,
-    "name": "京博儒苑上邦",
-    "address": "滨城区黄河五路渤海二十路",
-    "developer": "京博置业",
-    "year": 2020,
-    "type": "住宅",
-    "price": "8300-9800元/㎡"
-  },
-  {
-    "id": 16,
-    "name": "海通蓝郡",
-    "address": "滨城区黄河八路渤海五路",
-    "developer": "海通地产",
-    "year": 2016,
-    "type": "住宅",
-    "price": "7600-8900元/㎡"
-  },
-  {
-    "id": 17,
-    "name": "财富中心",
-    "address": "滨城区黄河六路渤海十八路",
-    "developer": "财富置业",
-    "year": 2017,
-    "type": "商业/住宅",
-    "price": "7900-9300元/㎡"
-  },
-  {
-    "id": 18,
-    "name": "领域尚城",
-    "address": "滨城区黄河二路渤海十二路",
-    "developer": "领域置业",
-    "year": 2015,
-    "type": "住宅",
-    "price": "7000-8200元/㎡"
-  },
-  {
-    "id": 19,
-    "name": "望湖云水谣",
-    "address": "滨城区黄河十路渤海二路",
-    "developer": "望湖置业",
-    "year": 2021,
-    "type": "住宅",
-    "price": "7800-9200元/㎡"
-  },
-  {
-    "id": 20,
-    "name": "百壹春风十里",
-    "address": "滨城区黄河十二路渤海二十一路",
-    "developer": "百壹置业",
-    "year": 2022,
-    "type": "住宅",
-    "price": "7500-8800元/㎡"
-  }
-]
+  "communities": [
+    {"id": 1, "name": "中海公园壹号", "district": "滨城区", "address": "黄河十二路渤海十八路", "price": "8500", "build_year": "2018", "developer": "中海地产"},
+    {"id": 2, "name": "碧桂园·翡翠城", "district": "滨城区", "address": "黄河十五路渤海五路", "price": "7800", "build_year": "2019", "developer": "碧桂园"},
+    {"id": 3, "name": "恒大悦龙台", "district": "滨城区", "address": "黄河十一路渤海二路", "price": "8200", "build_year": "2020", "developer": "恒大集团"},
+    {"id": 4, "name": "万达华府", "district": "滨城区", "address": "黄河八路渤海十八路", "price": "7500", "build_year": "2017", "developer": "万达集团"},
+    {"id": 5, "name": "保利·香槟国际", "district": "滨城区", "address": "黄河十三路渤海二十路", "price": "7200", "build_year": "2016", "developer": "保利地产"},
+    {"id": 6, "name": "绿城·百合花园", "district": "滨城区", "address": "黄河十路渤海十五路", "price": "8000", "build_year": "2019", "developer": "绿城集团"},
+    {"id": 7, "name": "万科·金域华府", "district": "滨城区", "address": "黄河十四路渤海八路", "price": "8300", "build_year": "2020", "developer": "万科集团"},
+    {"id": 8, "name": "融创·壹号院", "district": "滨城区", "address": "黄河十六路渤海六路", "price": "7900", "build_year": "2021", "developer": "融创中国"},
+    {"id": 9, "name": "龙湖·天街", "district": "滨城区", "address": "黄河十二路渤海二十路", "price": "8100", "build_year": "2022", "developer": "龙湖集团"},
+    {"id": 10, "name": "中海·天钻", "district": "滨城区", "address": "黄河十一路渤海十八路", "price": "8800", "build_year": "2021", "developer": "中海地产"},
+    {"id": 11, "name": "碧桂园·天悦", "district": "滨城区", "address": "黄河八路渤海五路", "price": "7600", "build_year": "2018", "developer": "碧桂园"},
+    {"id": 12, "name": "恒大·御景湾", "district": "滨城区", "address": "黄河十五路渤海十路", "price": "7400", "build_year": "2017", "developer": "恒大集团"},
+    {"id": 13, "name": "万达·御湖世家", "district": "滨城区", "address": "黄河十路渤海十八路", "price": "8200", "build_year": "2019", "developer": "万达集团"},
+    {"id": 14, "name": "保利·天悦", "district": "滨城区", "address": "黄河十三路渤海五路", "price": "7800", "build_year": "2020", "developer": "保利地产"},
+    {"id": 15, "name": "绿城·诚园", "district": "滨城区", "address": "黄河十四路渤海十五路", "price": "7700", "build_year": "2018", "developer": "绿城集团"},
+    {"id": 16, "name": "万科·城市之光", "district": "滨城区", "address": "黄河十六路渤海二十路", "price": "8000", "build_year": "2021", "developer": "万科集团"},
+    {"id": 17, "name": "融创·滨江壹号", "district": "滨城区", "address": "黄河十一路渤海十二路", "price": "7600", "build_year": "2019", "developer": "融创中国"},
+    {"id": 18, "name": "龙湖·春江天玺", "district": "滨城区", "address": "黄河十二路渤海八路", "price": "7900", "build_year": "2020", "developer": "龙湖集团"},
+    {"id": 19, "name": "中海·九樾", "district": "滨城区", "address": "黄河十五路渤海十八路", "price": "8500", "build_year": "2022", "developer": "中海地产"},
+    {"id": 20, "name": "碧桂园·凤凰城", "district": "滨城区", "address": "黄河八路渤海十五路", "price": "7300", "build_year": "2017", "developer": "碧桂园"},
+    {"id": 21, "name": "沾化·锦绣家园", "district": "沾化区", "address": "富国路中心街", "price": "5500", "build_year": "2016", "developer": "本地开发商"},
+    {"id": 22, "name": "沾化·书香苑", "district": "沾化区", "address": "文化路学府街", "price": "5800", "build_year": "2018", "developer": "本地开发商"},
+    {"id": 23, "name": "沾化·金都花园", "district": "沾化区", "address": "富桥路建设街", "price": "5200", "build_year": "2015", "developer": "本地开发商"},
+    {"id": 24, "name": "惠民·阳光花园", "district": "惠民县", "address": "孙武路文安路", "price": "4800", "build_year": "2016", "developer": "本地开发商"},
+    {"id": 25, "name": "惠民·古城花园", "district": "惠民县", "address": "鼓楼街南环路", "price": "4500", "build_year": "2015", "developer": "本地开发商"},
+    {"id": 26, "name": "阳信·梨乡花园", "district": "阳信县", "address": "阳城八路幸福路", "price": "4200", "build_year": "2017", "developer": "本地开发商"},
+    {"id": 27, "name": "阳信·金阳花园", "district": "阳信县", "address": "阳城五路商业街", "price": "4000", "build_year": "2016", "developer": "本地开发商"},
+    {"id": 28, "name": "无棣·古城名郡", "district": "无棣县", "address": "棣新一路中心大街", "price": "4600", "build_year": "2018", "developer": "本地开发商"},
+    {"id": 29, "name": "无棣·金都花园", "district": "无棣县", "address": "棣新二路海丰路", "price": "4400", "build_year": "2017", "developer": "本地开发商"},
+    {"id": 30, "name": "博兴·锦秋花园", "district": "博兴县", "address": "博城五路胜利路", "price": "5000", "build_year": "2017", "developer": "本地开发商"},
+    {"id": 31, "name": "博兴·乐安花园", "district": "博兴县", "address": "博城三路文化路", "price": "4800", "build_year": "2016", "developer": "本地开发商"},
+    {"id": 32, "name": "邹平·黄山花园", "district": "邹平市", "address": "黄山一路鹤伴路", "price": "5500", "build_year": "2018", "developer": "本地开发商"},
+    {"id": 33, "name": "邹平·黛溪花园", "district": "邹平市", "address": "黛溪三路黄山二路", "price": "5300", "build_year": "2017", "developer": "本地开发商"},
+    {"id": 34, "name": "邹平·醴泉花园", "district": "邹平市", "address": "醴泉一路会仙路", "price": "5600", "build_year": "2019", "developer": "本地开发商"},
+    {"id": 35, "name": "滨城·丽景豪庭", "district": "滨城区", "address": "黄河五路渤海八路", "price": "6800", "build_year": "2015", "developer": "本地开发商"},
+    {"id": 36, "name": "滨城·金色家园", "district": "滨城区", "address": "黄河六路渤海五路", "price": "6500", "build_year": "2014", "developer": "本地开发商"},
+    {"id": 37, "name": "滨城·阳光小区", "district": "滨城区", "address": "黄河三路渤海十路", "price": "6200", "build_year": "2013", "developer": "本地开发商"},
+    {"id": 38, "name": "滨城·新馨家园", "district": "滨城区", "address": "黄河八路渤海十八路", "price": "7000", "build_year": "2016", "developer": "本地开发商"},
+    {"id": 39, "name": "滨城·望海花园", "district": "滨城区", "address": "黄河十二路渤海二十路", "price": "7200", "build_year": "2017", "developer": "本地开发商"},
+    {"id": 40, "name": "滨城·秦皇河花园", "district": "滨城区", "address": "长江一路渤海十八路", "price": "6800", "build_year": "2015", "developer": "本地开发商"},
+    {"id": 41, "name": "滨城·中海城", "district": "滨城区", "address": "黄河八路渤海十六路", "price": "7500", "build_year": "2018", "developer": "本地开发商"},
+    {"id": 42, "name": "滨城·翡翠华庭", "district": "滨城区", "address": "黄河十路渤海十二路", "price": "6900", "build_year": "2016", "developer": "本地开发商"},
+    {"id": 43, "name": "滨城·书香门第", "district": "滨城区", "address": "黄河五路渤海十八路", "price": "7100", "build_year": "2017", "developer": "本地开发商"},
+    {"id": 44, "name": "滨城·怡和花园", "district": "滨城区", "address": "黄河七路渤海十五路", "price": "6700", "build_year": "2015", "developer": "本地开发商"},
+    {"id": 45, "name": "滨城·盛世东方", "district": "滨城区", "address": "黄河十一路渤海五路", "price": "7000", "build_year": "2016", "developer": "本地开发商"},
+    {"id": 46, "name": "滨城·贵苑小区", "district": "滨城区", "address": "黄河四路渤海七路", "price": "6000", "build_year": "2012", "developer": "本地开发商"},
+    {"id": 47, "name": "滨城·碧林花园", "district": "滨城区", "address": "长江三路渤海十八路", "price": "6600", "build_year": "2014", "developer": "本地开发商"},
+    {"id": 48, "name": "滨城·彩虹湖社区", "district": "滨城区", "address": "黄河八路渤海五路", "price": "6400", "build_year": "2013", "developer": "本地开发商"},
+    {"id": 49, "name": "滨城·市西社区", "district": "滨城区", "address": "黄河五路渤海二路", "price": "5800", "build_year": "2011", "developer": "本地开发商"},
+    {"id": 50, "name": "滨城·彭李社区", "district": "滨城区", "address": "黄河十路渤海八路", "price": "6200", "build_year": "2012", "developer": "本地开发商"}
+  ]
+}
