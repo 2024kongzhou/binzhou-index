@@ -3,7 +3,7 @@ INSERT OR IGNORE INTO users (id, username, email, password_hash, role, is_active
 (1, 'admin', 'admin@keyi.de5.net', '$2b$10$szWV1f6wcxLOXSY2PfKbaOPazLTmGHlGVFBhF8fYYMWVTLplL2ywC', 'admin', 1);
 
 -- Chronicles
-INSERT INTO chronicles (title, content, category, era, tags) VALUES
+INSERT OR IGNORE INTO chronicles (title, content, category, era, tags) VALUES
 ('滨州历史沿革', '滨州，山东省下辖地级市，位于山东省北部、黄河三角洲腹地。滨州历史悠久，早在新石器时代就有人类在此繁衍生息。春秋战国时期属齐国，秦汉设县，隋唐置州。1982年设立滨州地区，2000年撤地设市。', '历史', '先秦-现代', '历史,沿革,行政区划'),
 ('黄河三角洲文化', '滨州地处黄河三角洲腹地，是黄河文化的重要发祥地之一。黄河入海口的冲积平原孕育了独特的三角洲文化，包括海盐文化、渔业文化、农耕文化等多元融合的地域文化体系。', '文化', '古代-现代', '黄河,三角洲,文化'),
 ('孙子故里', '滨州惠民县是兵圣孙武的故乡。孙武所著的《孙子兵法》被誉为"兵学圣典"，对世界军事思想产生了深远影响。惠民县现存孙子兵法城等文化遗址，是研究孙子文化的重要基地。', '人物', '春秋', '孙武,孙子兵法,军事'),
@@ -12,14 +12,14 @@ INSERT INTO chronicles (title, content, category, era, tags) VALUES
 ('杜受田故居', '杜受田故居位于滨州市滨城区，是清代咸丰皇帝老师杜受田的故居。杜受田（1788-1852），字芝农，滨州人，道光年间进士，曾任协办大学士、礼部尚书等职。其故居现为山东省重点文物保护单位。', '人物', '清代', '杜受田,故居,文物');
 
 -- Products
-INSERT INTO products (name, description, price, original_price, stock, status, store_name, store_address, store_phone, is_soft_ad) VALUES
+INSERT OR IGNORE INTO products (name, description, price, original_price, stock, status, store_name, store_address, store_phone, is_soft_ad) VALUES
 ('精品窗帘定制', '高端面料，多种款式可选，免费上门测量安装', 128, 198, 999, 'active', '滨州窗帘布艺', '滨城区黄河五路388号', '0543-1234567', 1),
 ('环保无缝墙布', '进口环保材料，无缝拼接，十年质保', 68, 98, 500, 'active', '滨州墙布艺术', '滨城区渤海七路256号', '0543-7654321', 1),
 ('滨州冬枣', '沾化冬枣，皮薄肉脆，甜度高，国家地理标志产品', 38, 58, 200, 'active', '沾化冬枣直销', '沾化区下洼镇', '0543-8888888', 0),
 ('手工老粗布', '传统手工纺织，纯棉材质，滨州非物质文化遗产', 158, NULL, 50, 'active', '博兴老粗布', '博兴县城东街道', '0543-6666666', 0);
 
 -- Posts
-INSERT INTO posts (title, slug, content, excerpt, status, ai_generated) VALUES
+INSERT OR IGNORE INTO posts (title, slug, content, excerpt, status, ai_generated) VALUES
 ('滨州：黄河之畔的明珠', 'binzhou-yellow-river-pearl', '滨州，这座位于黄河三角洲的城市，正以其独特的魅力吸引着越来越多的目光。从孙子兵法城到魏氏庄园，从沾化冬枣到无棣海盐，滨州的历史文化底蕴深厚，自然资源丰富。', '探索滨州的历史文化与自然风光', 'published', 1),
 ('2026年滨州经济发展亮点', 'binzhou-economic-highlights-2026', '2026年，滨州市在经济发展方面取得了显著成就。新材料、新能源、高端装备制造等战略性新兴产业快速发展，传统产业数字化转型加速推进。', '回顾滨州2026年经济发展成就', 'published', 1),
 ('滨州美食指南：不可错过的地道风味', 'binzhou-food-guide', '滨州的美食文化源远流长，既有黄河入海口的鲜美海鲜，也有鲁北平原的传统面食。锅子饼、芝麻酥糖、大山烧鸡等特色美食值得一试。', '带你品尝滨州地道美食', 'published', 0);
