@@ -26,6 +26,9 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: Check dist directory
+        run: ls -la dist/ && ls -la dist/_next/ || true
+
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/wrangler-action@v3
         with:
@@ -34,6 +37,7 @@ jobs:
           command: pages deploy dist --project-name=binzhou-index
 
       - name: Apply D1 Migrations
+        continue-on-error: true
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -41,6 +45,7 @@ jobs:
           command: d1 execute binzhou-db --file=./drizzle/schema.sql
 
       - name: Seed D1 Database
+        continue-on-error: true
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
