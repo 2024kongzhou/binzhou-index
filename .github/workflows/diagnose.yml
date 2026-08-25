@@ -1,0 +1,30 @@
+name: Diagnose Tokens
+
+on:
+  workflow_dispatch:
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Test current token CLOUDFLARE_API_TOKEN
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          echo "current token length: ${#CLOUDFLARE_API_TOKEN}"
+          echo "current token prefix: ${CLOUDFLARE_API_TOKEN:0:8}"
+          npx wrangler@4 whoami 2>&1 | tail -5 || echo "RESULT: CURRENT_TOKEN_INVALID"
+
+      - name: Test old token CLOUDFLAREAPITOKEN
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLAREAPITOKEN }}
+        run: |
+          echo "old token length: ${#CLOUDFLARE_API_TOKEN}"
+          echo "old token prefix: ${CLOUDFLARE_API_TOKEN:0:8}"
+          npx wrangler@4 whoami 2>&1 | tail -5 || echo "RESULT: OLD_TOKEN_INVALID"
