@@ -1,0 +1,24 @@
+name = "binzhou-index"
+compatibility_date = "2026-08-25"
+compatibility_flags = ["nodejs_compat"]
+
+# Cloudflare D1 Database
+[[d1_databases]]
+binding = "DB"
+database_name = "binzhou-db"
+database_id = "89076eca-69b1-45f4-8240-e93e971182bb"
+
+# Cloudflare KV (for sessions/cache)
+[[kv_namespaces]]
+binding = "CACHE"
+id = "dc005cbffc584501bd1af9b19309c997"
+
+# Oracle Object Storage (via S3-compatible API)
+[vars]
+ORACLE_S3_ENDPOINT = "https://your-namespace.compat.objectstorage.your-region.oraclecloud.com"
+ORACLE_S3_BUCKET = "binzhou-images"
+
+# Secrets (set via wrangler secret put)
+# JWT_SECRET
+# ORACLE_S3_KEY
+# ORACLE_S3_SECRET
