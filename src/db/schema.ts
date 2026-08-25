@@ -60,6 +60,24 @@ export const chronicles = sqliteTable("chronicles", {
   createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
 });
 
+export const villages = sqliteTable("villages", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  name: text("name").notNull(),
+  district: text("district"),
+  township: text("township"),
+  location: text("location"),
+  population: text("population"),
+  farmland: text("farmland"),
+  surnames: text("surnames"),
+  history: text("history"),
+  evolution: text("evolution"),
+  remark: text("remark"),
+  versionTag: text("version_tag"),
+  sourceFile: text("source_file"),
+  status: text("status").default("published"),
+  createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
+});
+
 export const aiOpsLogs = sqliteTable("ai_ops_logs", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   taskType: text("task_type"),

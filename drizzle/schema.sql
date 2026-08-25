@@ -66,6 +66,25 @@ CREATE TABLE IF NOT EXISTS chronicles (
   created_at INTEGER DEFAULT (unixepoch())
 );
 
+-- Villages table
+CREATE TABLE IF NOT EXISTS villages (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  district TEXT,
+  township TEXT,
+  location TEXT,
+  population TEXT,
+  farmland TEXT,
+  surnames TEXT,
+  history TEXT,
+  evolution TEXT,
+  remark TEXT,
+  version_tag TEXT,
+  source_file TEXT,
+  status TEXT DEFAULT 'published',
+  created_at INTEGER DEFAULT (unixepoch())
+);
+
 -- AI Ops Logs table
 CREATE TABLE IF NOT EXISTS ai_ops_logs (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
