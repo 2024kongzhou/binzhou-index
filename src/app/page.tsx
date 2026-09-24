@@ -11,8 +11,10 @@ import {
   ArrowRight,
 } from "lucide-react";
 import HomeContent from "./home-content";
+import { getHomeData } from "@/lib/site-api";
 
-export default function HomePage() {
+export default async function HomePage() {
+  const homeData = await getHomeData();
   return (
     <div className="flex flex-col">
       {/* Hero Section */}
@@ -43,7 +45,7 @@ export default function HomePage() {
               <Link href="/place/">
                 <Button size="lg" className="gap-2 bg-amber-500 hover:bg-amber-600 text-slate-900 font-semibold px-6 md:px-8">
                   <Landmark className="h-5 w-5" />
-                  探索地方志
+                  探索村庄名录
                 </Button>
               </Link>
               <Link href="/product/">
@@ -64,12 +66,12 @@ export default function HomePage() {
           <div className="text-center max-w-2xl mx-auto mb-10 md:mb-12">
             <h2 className="text-2xl md:text-3xl font-bold mb-3">一站式本地服务平台</h2>
             <p className="text-muted-foreground text-sm md:text-base">
-              集地方志、博客、商品展示于一体，为滨州市民提供全面的本地信息服务
+              集村庄名录、博客、商品展示于一体，为滨州市民提供全面的本地信息服务
             </p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
             {[
-              { icon: MapPin, title: "地方志", desc: "收录滨州历史、地理、人物、风俗等地方性知识", color: "bg-blue-100 text-blue-600" },
+              { icon: MapPin, title: "村庄名录", desc: "收录滨州村庄历史、沿革变迁、人口田地等乡土信息", color: "bg-blue-100 text-blue-600" },
               { icon: BookOpen, title: "滨州故事", desc: "本地新闻、文化故事、城市记忆与生活点滴", color: "bg-amber-100 text-amber-600" },
               { icon: ShoppingBag, title: "商品展示", desc: "本地优质商品推荐，支持线下体验店引流", color: "bg-emerald-100 text-emerald-600" },
               { icon: Newspaper, title: "本地资讯", desc: "实时更新的本地资讯，掌握滨州动态", color: "bg-rose-100 text-rose-600" },
@@ -88,7 +90,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <HomeContent />
+      <HomeContent initial={homeData} />
 
       {/* CTA Section */}
       <section className="py-16 md:py-24">

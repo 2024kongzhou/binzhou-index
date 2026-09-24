@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, User, FileText, Sparkles, Loader2 } from "lucide-react";
+import { FileText, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { useToast } from "@/components/ui/use-toast";
 
@@ -69,7 +69,8 @@ export default function BlogList() {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
       {posts.map((post) => (
-        <Card key={post.id} className="group hover:shadow-xl transition-all duration-300 overflow-hidden border-0 bg-gradient-to-br from-slate-50 to-white flex flex-col">
+        <Link key={post.id} href={`/blog/${post.slug}/`} className="block h-full">
+        <Card className="group hover:shadow-xl transition-all duration-300 overflow-hidden border-0 bg-gradient-to-br from-slate-50 to-white flex flex-col h-full">
           {post.coverImage && (
             <div className="aspect-video bg-muted overflow-hidden">
               <img
@@ -96,11 +97,12 @@ export default function BlogList() {
             <p className="text-sm text-muted-foreground line-clamp-2 flex-1">
               {post.excerpt || "暂无摘要"}
             </p>
-            <Link href="/blog/" className="inline-flex items-center text-sm text-blue-600 hover:text-blue-700 gap-1 mt-auto pt-2">
+            <span className="inline-flex items-center text-sm text-blue-600 hover:text-blue-700 gap-1 mt-auto pt-2">
               阅读全文 <span className="transition-transform group-hover:translate-x-1">→</span>
-            </Link>
+            </span>
           </CardContent>
         </Card>
+        </Link>
       ))}
     </div>
   );

@@ -5,8 +5,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Landmark, MapPin, Users, Search, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
+import Link from "next/link";
+import { Landmark, MapPin, Users, Search, ChevronLeft, ChevronRight } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
+import { decodeEscapedText, formatPopulation, formatSourceRemark } from "@/lib/content";
 
 interface Village {
   id: number;
@@ -124,8 +126,13 @@ export default function VillageList() {
 
       {/* Village Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-        {villages.map((v) => (
-          <Card key={v.id} className="group hover:shadow-xl transition-all duration-300 border-0 bg-gradient-to-br from-slate-50 to-white flex flex-col overflow-hidden">
+        {villages.map((v) => {
+          const population = formatPopulation(v.population);
+          const history = decodeEscapedText(v.history || v.evolution);
+          const source = formatSourceRemark(v.remark);
+          return (
+          <Link key={v.id} href={`/place/${v.id}/`} className="block h-full">
+          <Card className="group hover:shadow-xl transition-all duration-300 border-0 bg-gradient-to-br from-slate-50 to-white flex flex-col overflow-hidden h-full">
             <CardHeader className="pb-3">
               <div className="flex items-start justify-between gap-3">
                 <CardTitle className="text-base md:text-lg leading-snug group-hover:text-blue-600 transition-colors">
@@ -149,10 +156,10 @@ export default function VillageList() {
                     {v.location}
                   </span>
                 )}
-                {v.population && (
+                {population && (
                   <span className="inline-flex items-center gap-1">
                     <Users className="h-3 w-3" />
-                    {v.population}
+                    {population}
                   </span>
                 )}
                 {v.surnames && (
@@ -162,14 +169,14 @@ export default function VillageList() {
                 )}
               </div>
 
-              {(v.history || v.evolution) && (
-                <p className="text-sm text-muted-foreground line-clamp-4 leading-relaxed flex-1">
-                  {v.history || v.evolution}
+              {history && (
+                <p className="text-sm text-muted-foreground line-clamp-4 leading-relaxed flex-1 whitespace-pre-line">
+                  {history}
                 </p>
               )}
 
-              {v.remark && (
-                <p className="text-xs text-slate-500 border-t pt-2">{v.remark}</p>
+              {source && (
+                <p className="text-xs text-slate-500 border-t pt-2">资料来源：{source}</p>
               )}
 
               {v.versionTag && (
@@ -179,7 +186,9 @@ export default function VillageList() {
               )}
             </CardContent>
           </Card>
-        ))}
+          </Link>
+          );
+        })}
       </div>
 
       {villages.length === 0 && !loading && (
@@ -195,10 +204,12 @@ export default function VillageList() {
           <Button
             variant="outline"
             size="sm"
+            aria-label="上一页"
             onClick={() => setOffset((p) => Math.max(0, p - PAGE_SIZE))}
             disabled={offset === 0}
           >
             <ChevronLeft className="h-4 w-4" />
+            上一页
           </Button>
           <span className="text-sm text-muted-foreground">
             第 {currentPage} / {totalPages} 页
@@ -206,9 +217,11 @@ export default function VillageList() {
           <Button
             variant="outline"
             size="sm"
+            aria-label="下一页"
             onClick={() => setOffset((p) => Math.min((totalPages - 1) * PAGE_SIZE, p + PAGE_SIZE))}
             disabled={currentPage >= totalPages}
           >
+            下一页
             <ChevronRight className="h-4 w-4" />
           </Button>
         </div>

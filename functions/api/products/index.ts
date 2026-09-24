@@ -21,8 +21,17 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
   try {
     const url = new URL(context.request.url);
     const search = url.searchParams.get("search");
+    const id = url.searchParams.get("id");
 
     const db = getDB(context.env.DB);
+    if (id) {
+      const product = await db.select().from(products).where(eq(products.id, Number(id))).get();
+      return new Response(JSON.stringify({ product: product || null }), {
+        headers: { "Content-Type": "application/json; charset=utf-8" },
+        status: product ? 200 : 404,
+      });
+    }
+
     let result;
     if (search) {
       result = await db.select().from(products).where(like(products.name, `%${search}%`)).orderBy(desc(products.createdAt)).all();
@@ -30,7 +39,10 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
       result = await db.select().from(products).orderBy(desc(products.createdAt)).all();
     }
 
-    return new Response(JSON.stringify({ products: result }), { headers: { "Content-Type": "application/json" } });
+    return new Response(
+      JSON.stringify({ products: result, pagination: { total: result.length } }),
+      { headers: { "Content-Type": "application/json; charset=utf-8" } }
+    );
   } catch {
     return new Response(JSON.stringify({ error: "获取失败" }), { status: 500, headers: { "Content-Type": "application/json" } });
   }

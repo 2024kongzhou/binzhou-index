@@ -4,7 +4,8 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ShoppingBag, MapPin, Phone, Store, Loader2 } from "lucide-react";
+import { ShoppingBag, MapPin, Phone } from "lucide-react";
+import Link from "next/link";
 import { useToast } from "@/components/ui/use-toast";
 
 interface Product {
@@ -71,7 +72,8 @@ export default function ProductList() {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
       {products.map((product) => (
-        <Card key={product.id} className="group hover:shadow-xl transition-all duration-300 border-0 bg-gradient-to-br from-slate-50 to-white flex flex-col overflow-hidden">
+        <Link key={product.id} href={`/product/${product.id}/`} className="block h-full">
+        <Card className="group hover:shadow-xl transition-all duration-300 border-0 bg-gradient-to-br from-slate-50 to-white flex flex-col overflow-hidden h-full">
           <div className="aspect-[4/3] bg-muted overflow-hidden relative">
             {product.images ? (
               <img
@@ -140,6 +142,7 @@ export default function ProductList() {
             </Button>
           </CardContent>
         </Card>
+        </Link>
       ))}
     </div>
   );

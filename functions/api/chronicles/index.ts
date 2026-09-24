@@ -33,7 +33,10 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
       result = await db.select().from(chronicles).orderBy(desc(chronicles.createdAt)).all();
     }
 
-    return new Response(JSON.stringify({ chronicles: result }), { headers: { "Content-Type": "application/json" } });
+    return new Response(
+      JSON.stringify({ chronicles: result, pagination: { total: result.length } }),
+      { headers: { "Content-Type": "application/json; charset=utf-8" } }
+    );
   } catch {
     return new Response(JSON.stringify({ error: "获取失败" }), { status: 500, headers: { "Content-Type": "application/json" } });
   }

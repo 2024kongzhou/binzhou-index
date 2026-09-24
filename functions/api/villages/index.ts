@@ -23,10 +23,23 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
     const district = url.searchParams.get("district");
     const township = url.searchParams.get("township");
     const search = url.searchParams.get("search");
+    const id = url.searchParams.get("id");
     const limit = Math.min(parseInt(url.searchParams.get("limit") || "20", 10), 100);
     const offset = parseInt(url.searchParams.get("offset") || "0", 10);
 
     const db = getDB(context.env.DB);
+
+    if (id) {
+      const village = await db
+        .select()
+        .from(villages)
+        .where(eq(villages.id, Number(id)))
+        .get();
+      return new Response(JSON.stringify({ village: village || null }), {
+        headers: { "Content-Type": "application/json; charset=utf-8" },
+        status: village ? 200 : 404,
+      });
+    }
 
     const conditions = [];
     if (district) conditions.push(eq(villages.district, district));

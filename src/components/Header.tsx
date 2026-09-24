@@ -37,10 +37,10 @@ export function Header() {
 
   const navItems = [
     { href: "/", label: "首页" },
-    { href: "/place", label: "地方志" },
-    { href: "/blog", label: "博客" },
-    { href: "/product", label: "商品" },
-    { href: "/about", label: "关于" },
+    { href: "/place/", label: "村庄名录" },
+    { href: "/blog/", label: "滨州故事" },
+    { href: "/product/", label: "商品" },
+    { href: "/about/", label: "关于" },
   ];
 
   return (
@@ -74,14 +74,14 @@ export function Header() {
               <DropdownMenuContent align="end">
                 {user.role === "admin" && (
                   <DropdownMenuItem>
-                    <Link href="/admin" className="flex items-center gap-2">
+                    <Link href="/admin/" className="flex items-center gap-2">
                       <Shield className="h-4 w-4" />
                       管理后台
                     </Link>
                   </DropdownMenuItem>
                 )}
                 <DropdownMenuItem>
-                  <Link href="/messages" className="flex items-center gap-2">
+                  <Link href="/messages/" className="flex items-center gap-2">
                     <User className="h-4 w-4" />
                     我的私信
                   </Link>
@@ -94,10 +94,10 @@ export function Header() {
             </DropdownMenu>
           ) : (
             <div className="hidden md:flex items-center gap-2">
-              <Link href="/login">
+              <Link href="/login/">
                 <Button variant="ghost" size="sm">登录</Button>
               </Link>
-              <Link href="/register">
+              <Link href="/register/">
                 <Button size="sm">注册</Button>
               </Link>
             </div>
@@ -129,10 +129,10 @@ export function Header() {
             ))}
             {!user && (
               <div className="flex gap-2 pt-2 border-t">
-                <Link href="/login" className="flex-1">
+                <Link href="/login/" className="flex-1">
                   <Button variant="outline" className="w-full">登录</Button>
                 </Link>
-                <Link href="/register" className="flex-1">
+                <Link href="/register/" className="flex-1">
                   <Button className="w-full">注册</Button>
                 </Link>
               </div>
