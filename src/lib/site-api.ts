@@ -103,11 +103,42 @@ export async function getHomeData(): Promise<HomeData> {
   };
 }
 
+const villageById = new Map<string, Village>();
+let villageListPromise: Promise<void> | null = null;
+
+async function loadAllVillages(): Promise<void> {
+  if (villageById.size > 0) return;
+  if (!villageListPromise) {
+    villageListPromise = (async () => {
+      const pageSize = 100;
+      for (let offset = 0; offset < 5000; offset += pageSize) {
+        const data = await fetchJson<{ villages?: Village[]; pagination?: { total?: number } }>(
+          `/api/villages?limit=${pageSize}&offset=${offset}`
+        );
+        const batch = data?.villages || [];
+        if (batch.length === 0) break;
+        for (const village of batch) {
+          villageById.set(String(village.id), village);
+        }
+        if (villageById.size >= (data?.pagination?.total || 0)) break;
+      }
+    })().finally(() => {
+      if (villageById.size === 0) villageListPromise = null;
+    });
+  }
+  await villageListPromise;
+}
+
 export async function getVillageById(id: string): Promise<Village | null> {
+  await loadAllVillages();
+  const cached = villageById.get(id);
+  if (cached) return cached;
   const data = await fetchJson<{ village?: Village; villages?: Village[] }>(
     `/api/villages?id=${encodeURIComponent(id)}`
   );
-  return data?.village || data?.villages?.[0] || null;
+  const village = data?.village || data?.villages?.[0] || null;
+  if (village) villageById.set(String(village.id), village);
+  return village;
 }
 
 export async function getPostBySlug(slug: string): Promise<Post | null> {
@@ -127,18 +158,8 @@ export async function getProductById(id: string): Promise<Product | null> {
 }
 
 export async function getVillageIds(max = 5000): Promise<string[]> {
-  const ids: string[] = [];
-  const pageSize = 100;
-  for (let offset = 0; offset < max; offset += pageSize) {
-    const data = await fetchJson<{ villages?: { id: number }[]; pagination?: { total?: number } }>(
-      `/api/villages?limit=${pageSize}&offset=${offset}`
-    );
-    const batch = data?.villages || [];
-    if (batch.length === 0) break;
-    ids.push(...batch.map((v) => String(v.id)));
-    if (ids.length >= (data?.pagination?.total || 0)) break;
-  }
-  return ids;
+  await loadAllVillages();
+  return Array.from(villageById.keys()).slice(0, max);
 }
 
 export async function getPostSlugs(): Promise<string[]> {
