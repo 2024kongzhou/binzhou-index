@@ -29,6 +29,13 @@ jobs:
       - name: Check dist directory
         run: ls -la dist/ && ls -la dist/_next/ || true
 
+      - name: Upload dist artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist
+          retention-days: 3
+
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/wrangler-action@v3
         with:
