@@ -94,7 +94,7 @@ export default {
           {
             method: "GET",
             signal: AbortSignal.timeout(10000),
-            redirect: "error",
+            redirect: "manual",
           },
         );
         if (!upstream.ok)
