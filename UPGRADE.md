@@ -2,7 +2,7 @@
 
 ## 当前交付状态（2026-09-26）
 
-网站升级代码位于 `edge/`，已经通过本地构建、类型检查与回归测试。Oracle-B 的服务维修已应用。新版 Pages 尚未部署：Cloudflare 连接器写入返回 10000，GitHub Actions 的部署 Token 返回 9109（来源 IP 不允许）。在恢复部署授权前，不要把本分支合入 main，以免把失败的发布误认为上线。
+网站升级代码位于 `edge/`，已经通过构建、类型检查与 12 项回归测试。Oracle-B 的服务维修已应用。更新 GitHub 部署 Token 后授权已恢复；真实 D1 数据的首页、村庄、文章、商品、联系页及草稿隔离检查通过。图片代理改用 Cloudflare 支持的 manual 重定向处理后返回 200。预览部署记录：https://github.com/2024kongzhou/binzhou-index/actions/runs/36234975220 。正式发布结果以 main 分支的部署记录为准。
 
 ## 运行与维护
 
@@ -55,7 +55,7 @@ https://github.com/2024kongzhou/binzhou-index/actions/runs/36232755210
 
 ## 尚需完成的线上工作
 
-1. 恢复 Cloudflare 发布权限并完成真实环境验收；本地通过不等于生产上线。
+1. Cloudflare 发布权限已恢复，预览已验收；main 发布后仍需确认正式域名和管理员登录。
 2. 图片目前依赖原有 Quick Tunnel，重启后地址可能变化。后续应迁移到命名隧道和固定域名，并更新 `ORACLE_IMG_SERVER`。
 3. AI 网关已经在 B 上验证健康，但 Pages 的 `AI_HUB_URL` 和加密 `AI_HUB_KEY` 尚未配置。因此新版 `/api/ai` 会明确返回 503，不再伪装健康。
 4. 管理员弱密码与旧凭据轮换需要在保证站主登录和定时任务同步更新的前提下安排；本次没有更改站主密码。

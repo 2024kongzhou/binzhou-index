@@ -14,4 +14,4 @@ npm run dev
 
 要求 Node.js 24。本地预览使用演示数据，地址为 http://localhost:3000/ 。线上配置在 `wrangler.toml`，服务端入口为 `edge/worker.ts`，原始服务代码位于 `ops/oracle-b/`。
 
-**上线状态、已修复问题、凭据配置、服务器备份与回退说明见 [UPGRADE.md](UPGRADE.md)。** Cloudflare 部署授权尚待恢复，本地预览不代表正式站已更新。
+**已修复问题、凭据配置、服务器备份与回退说明见 [UPGRADE.md](UPGRADE.md)。** Cloudflare 授权已恢复，真实数据预览通过；正式发布结果以 main 分支的部署记录为准。
