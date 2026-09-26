@@ -60,6 +60,20 @@ await test('verified historical records replace conflicting summaries in both AP
   assert.equal(other.village.population,'12');
   assert.equal(sqlite.prepare('SELECT population FROM villages WHERE id=99003').get().population,'43664');
 });
+await test('gazetteer stays primary and suspect values are quarantined only on exact matches', async () => {
+  sqlite.prepare("INSERT INTO villages(id,name,district,township,population,farmland,status) VALUES(99005,'柳家','滨城区','滨城镇','43664','55993亩','published'),(99006,'东关','滨城区','滨城镇','43664','55993亩','published'),(99007,'东关','滨城区','滨城镇','123','456亩','published')").run();
+  const primary=await (await request('/api/villages?id=99005')).json();
+  assert.match(primary.village.population,/156人/);
+  assert.match(primary.village.farmland,/205亩/);
+  assert.match(primary.village.sourceFile,/184页/);
+  const page=await (await request('/place/99005/')).text();
+  assert.match(page,/其他文献记载/);
+  assert.match(page,/161人/);
+  const suspect=await (await request('/api/villages?id=99006')).json();
+  assert.match(suspect.village.population,/已隔离/);
+  const changed=await (await request('/api/villages?id=99007')).json();
+  assert.equal(changed.village.population,'123');
+});
 await test("public pages render and unknown routes return 404", async () => {
   for (const p of [
     "/",
