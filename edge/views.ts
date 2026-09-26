@@ -1,3 +1,4 @@
+import { verifiedVillage } from "./verified-places";
 import { researchPage, villageSupplement } from "./village-research";
 import {
   all,
@@ -71,6 +72,7 @@ function postCard(p: Row, featured = false) {
   return `<article class="story-card ${featured ? "featured" : ""}"><a href="/blog/${encodeURIComponent(String(p.slug))}/" class="card-image"><img src="${imageUrl(p.cover_image)}" alt="" loading="lazy" width="640" height="400"><span class="image-label">${p.ai_generated ? "AI 辅助创作" : "城市故事"}</span></a><div class="card-body"><span class="meta">${date(p.created_at)} <span>·</span> 滨州故事</span><h3><a href="/blog/${encodeURIComponent(String(p.slug))}/">${esc(p.title)}</a></h3><p>${esc(cleanText(p.excerpt || p.content).slice(0, 100))}</p><a class="text-link" href="/blog/${encodeURIComponent(String(p.slug))}/">阅读全文 ${icon("arrow", 16)}</a></div></article>`;
 }
 function villageCard(v: Row) {
+  v = verifiedVillage(v);
   return `<a class="village-card" href="/place/${v.id}/"><div class="village-top">${badge(v.district || "滨州")}<span>${esc(v.township)}</span>${icon("arrow", 18)}</div><h3>${esc(v.name)}</h3><p>${esc(cleanText(v.history || v.evolution || "乡土记忆，值得被认真记录。").slice(0, 95))}</p><span class="village-bottom">${icon("pin", 14)} ${esc([v.district, v.township].filter(Boolean).join(" · "))}</span></a>`;
 }
 function productCard(p: Row) {
@@ -200,12 +202,13 @@ export async function page(req: Request, env: Env, user: User | null) {
   if (path === "/village-research/") return render("村庄资料补遗", researchPage());
   let match = path.match(/^\/place\/(\d+)\/$/);
   if (match) {
-    const v = await one(
+    let v = await one(
       db,
       "SELECT * FROM villages WHERE id=? AND status='published'",
       Number(match[1]),
     );
     if (!v) throw new HttpError(404, "村庄档案不存在");
+    v = verifiedVillage(v);
     return render(
       String(v.name),
       `<article class="container reading"><a class="breadcrumb" href="/place/">← 返回村庄名录</a><div class="article-heading">${badge(v.district || "乡土档案")}<h1>${esc(v.name)}</h1><p>${esc(v.township || "滨州")} · ${esc(v.version_tag || "村庄名录")}</p></div><div class="facts">${[

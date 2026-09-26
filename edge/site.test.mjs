@@ -50,6 +50,16 @@ await test("guest cannot read draft by list, search, slug or page", async () => 
     0,
   );
 });
+await test('verified historical records replace conflicting summaries in both API and page', async () => {
+  sqlite.prepare("INSERT INTO villages(id,name,district,township,population,farmland,status) VALUES(99003,'北关','滨城区','滨城镇','43664','55993亩','published'),(99004,'北关','惠民县','惠民镇','12','10亩','published')").run();
+  const body=await (await request('/place/99003/')).text();
+  assert.match(body,/625人/); assert.doesNotMatch(body,/43664/);
+  const data=await (await request('/api/villages?id=99003')).json();
+  assert.match(data.village.farmland,/797亩/);
+  const other=await (await request('/api/villages?id=99004')).json();
+  assert.equal(other.village.population,'12');
+  assert.equal(sqlite.prepare('SELECT population FROM villages WHERE id=99003').get().population,'43664');
+});
 await test("public pages render and unknown routes return 404", async () => {
   for (const p of [
     "/",

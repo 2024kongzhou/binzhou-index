@@ -1,3 +1,4 @@
+import { verifiedVillage } from "./verified-places";
 import { SignJWT, jwtVerify } from "jose";
 import bcrypt from "bcryptjs";
 export type Row = Record<string, string | number | null>;
@@ -318,7 +319,7 @@ export async function api(
         "SELECT * FROM villages WHERE id=? AND status='published'",
         integer(q.get("id"), 0, 1, 1e9),
       );
-      return json({ village: v ? camel(v) : null }, v ? 200 : 404);
+      return json({ village: v ? camel(verifiedVillage(v)) : null }, v ? 200 : 404);
     }
     const where = ["status='published'"],
       args: (string | number)[] = [];
@@ -350,7 +351,7 @@ export async function api(
         ...args,
       );
     return json({
-      villages: rows.map(camel),
+      villages: rows.map(v => camel(verifiedVillage(v))),
       pagination: { total: count?.total || 0, limit: n, offset },
     });
   }
