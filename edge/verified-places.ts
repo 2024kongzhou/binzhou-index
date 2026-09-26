@@ -1,4 +1,5 @@
 import type { Row } from './core';
+import { facts } from './village-facts';
 
 // Transcribed and visually checked against the supplied gazetteer, PDF page 11 / printed page 183.
 export const verifiedPlaces = [
@@ -9,7 +10,14 @@ export const verifiedPlaces = [
 export function verifiedVillage(v:Row):Row {
   if(v.district!=='滨城区'||v.township!=='滨城镇') return v;
   const f=verifiedPlaces.find(f=>f.name===String(v.name).replace(/村$/,''));
-  if(!f) return v;
+  if(!f) {
+    const supplemental=facts.find(f=>f.town===v.township&&f.name.replace(/村$/,'')===String(v.name).replace(/村$/,''));
+    if(!supplemental) return v;
+    return {...v,population:supplemental.year+'：'+supplemental.population,farmland:supplemental.year+'：'+supplemental.land,
+      surnames:supplemental.surnames,history:supplemental.history,evolution:supplemental.migration,
+      source_file:'《滨州市小康村志》1998年7月第1版，'+supplemental.name+'章；公开镜像已核。',
+      remark:'本页采用已核的历史资料，不是现状数据；统计时点以各字段说明为准。',version_tag:'来源核验 · 历史记录'};
+  }
   return {...v, population:f.population,farmland:f.farmland,location:f.location,history:f.history,surnames:f.surnames,
     evolution:'历史行政隶属按原书保留，现行社区与行政村对应关系待核实。',
     source_file:'《滨州市地名志》用户提供本，PDF第11页／书内第183页，已目视核对。',
