@@ -14,9 +14,9 @@ export const verifiedPlaces = [
 export function verifiedVillage(v:Row):Row {
   const pending={...v,version_tag:'旧汇编 · 尚未逐页核验',remark:'此条尚未逐页对照《滨州市地名志》，旧汇编可能存在错填、漏项或年代混用，不应视为已核定资料。'+String(v.remark||'')};
   const suspect=quarantinedValues[[v.district,v.township,v.name].join('|')];
-  if(suspect) for(const field of ['population','farmland']) {
+  if(suspect) for(const field of ['population','farmland','history','evolution','surnames']) {
     if(suspect[field]&&String(v[field])===suspect[field])
-      (pending as Row)[field]='待原页核验（旧汇编疑似乡镇总量误填，已隔离）';
+      (pending as Row)[field]='待原页核验（旧汇编疑似重复错填或无依据推断，已隔离）';
   }
   if(v.district!=='滨城区'||v.township!=='滨城镇') return pending;
   const f=verifiedPlaces.find(f=>f.name===String(v.name).replace(/村$/,''));
