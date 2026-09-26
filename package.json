@@ -1,1 +1,15 @@
-{"name":"binzhou-index","version":"1.0.0","private":true,"type":"module","scripts":{"build":"node edge/build.mjs","typecheck":"node edge/node_modules/typescript/bin/tsc -p edge/tsconfig.json","test":"node edge/site.test.mjs","dev":"node edge/dev.mjs"},"engines":{"node":">=22.13"}}
+{
+  "name": "binzhou-index",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node edge/build.mjs",
+    "typecheck": "node edge/node_modules/typescript/bin/tsc -p edge/tsconfig.json",
+    "test": "node edge/site.test.mjs",
+    "dev": "node edge/dev.mjs"
+  },
+  "engines": {
+    "node": ">=22.13"
+  }
+}
