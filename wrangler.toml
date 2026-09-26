@@ -3,25 +3,32 @@ compatibility_date = "2026-08-25"
 compatibility_flags = ["nodejs_compat"]
 pages_build_output_dir = "dist"
 
-# Cloudflare D1 Database
 [[d1_databases]]
 binding = "DB"
 database_name = "binzhou-db"
 database_id = "89076eca-69b1-45f4-8240-e93e971182bb"
 
-# Cloudflare KV (for sessions/cache)
 [[kv_namespaces]]
 binding = "CACHE"
 id = "dc005cbffc584501bd1af9b19309c997"
 
-# Oracle Object Storage（密钥请用 wrangler secret，不要写进仓库）
 [vars]
-ORACLE_S3_ENDPOINT = ""
-ORACLE_S3_BUCKET = "binzhou-images"
+ORACLE_IMG_SERVER = "https://cheats-nokia-spokesman-mat.trycloudflare.com"
 AI_HUB_URL = ""
 
-# Secrets（用 wrangler pages secret put / GitHub Secrets 配置）
-# JWT_SECRET
-# ORACLE_S3_KEY
-# ORACLE_S3_SECRET
-# AI_HUB_KEY
+[env.preview.vars]
+PREVIEW_READ_ONLY = "true"
+ORACLE_IMG_SERVER = "https://cheats-nokia-spokesman-mat.trycloudflare.com"
+AI_HUB_URL = ""
+
+[[env.preview.d1_databases]]
+binding = "DB"
+database_name = "binzhou-db"
+database_id = "89076eca-69b1-45f4-8240-e93e971182bb"
+
+[[env.preview.kv_namespaces]]
+binding = "CACHE"
+id = "dc005cbffc584501bd1af9b19309c997"
+
+# JWT_SECRET and AI_HUB_KEY remain encrypted dashboard secrets.
+# Preview shares published data, but all application writes are denied.
