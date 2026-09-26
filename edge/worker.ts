@@ -87,10 +87,11 @@ export default {
         const file = url.pathname.slice(9);
         if (!/^[\w-]+\.(jpe?g|png|webp|gif)$/i.test(file))
           throw new HttpError(404, "图片不存在");
-        if (!env.ORACLE_IMG_SERVER?.startsWith("https://"))
+        const imageOrigin = env.IMAGE_ORIGIN || env.ORACLE_IMG_SERVER;
+        if (!imageOrigin?.startsWith("https://"))
           throw new HttpError(503, "图片服务暂不可用");
         const upstream = await fetch(
-          env.ORACLE_IMG_SERVER.replace(/\/$/, "") + "/images/" + file,
+          imageOrigin.replace(/\/$/, "") + "/images/" + file,
           {
             method: "GET",
             signal: AbortSignal.timeout(10000),

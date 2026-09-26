@@ -1,4 +1,5 @@
 interface Env {
+  IMAGE_ORIGIN?: string;
   DB: D1Database;
   CACHE: KVNamespace;
   JWT_SECRET: string;

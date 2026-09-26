@@ -13,12 +13,12 @@ binding = "CACHE"
 id = "dc005cbffc584501bd1af9b19309c997"
 
 [vars]
-ORACLE_IMG_SERVER = "https://cheats-nokia-spokesman-mat.trycloudflare.com"
+IMAGE_ORIGIN = "https://cheats-nokia-spokesman-mat.trycloudflare.com"
 AI_HUB_URL = ""
 
 [env.preview.vars]
 PREVIEW_READ_ONLY = "true"
-ORACLE_IMG_SERVER = "https://cheats-nokia-spokesman-mat.trycloudflare.com"
+IMAGE_ORIGIN = "https://cheats-nokia-spokesman-mat.trycloudflare.com"
 AI_HUB_URL = ""
 
 [[env.preview.d1_databases]]
