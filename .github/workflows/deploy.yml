@@ -36,6 +36,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          wranglerVersion: '4.125.0'
+          wranglerVersion: '4.141.0'
           command: pages deploy dist --project-name=binzhou-index --branch=${{ github.ref_name }}
+
 
