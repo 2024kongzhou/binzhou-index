@@ -1,3 +1,4 @@
+import { researchPage, villageSupplement } from "./village-research";
 import {
   all,
   one,
@@ -193,9 +194,10 @@ export async function page(req: Request, env: Env, user: User | null) {
     ]);
     return render(
       search ? "全站搜索" : "村庄名录",
-      `<div class="container">${intro(search ? "FIND YOUR BINZHOU" : "ROOTS & PLACES", search ? "找到你心中的滨州。" : "沿着村名，回到故乡。", search ? "搜索村庄、乡镇与城市故事。" : "一份持续整理的乡土档案，让历史与日常在这里相遇。")}${searchForm(path, q, "输入村庄、乡镇" + (search ? "或文章标题" : ""))}${!search ? `<nav class="filter-chips" aria-label="按区县筛选"><a ${!district ? 'aria-current="page"' : ""} href="/place/?q=${encodeURIComponent(q)}">全部区县</a>${districts.map((d) => `<a ${district === d.district ? 'aria-current="page"' : ""} href="/place/?district=${encodeURIComponent(String(d.district))}&q=${encodeURIComponent(q)}">${esc(d.district)} <small>${d.total}</small></a>`).join("")}</nav>` : ""}${posts.length ? `${sectionHead("STORIES", "相关故事")}<div class="story-grid">${posts.map((p) => postCard(p)).join("")}</div>` : ""}<div class="results-heading"><h2>${search ? "相关村庄" : "村庄档案"}</h2><span>找到 ${total?.total || 0} 条记录${q ? " · " + esc(q) : ""}</span></div><div class="village-grid">${vs.map(villageCard).join("")}</div>${!vs.length ? blank("没有找到相关村庄") : ""}${pager(url, Number(total?.total || 0), n, size)}</div>`,
+      `<div class="container">${intro(search ? "FIND YOUR BINZHOU" : "ROOTS & PLACES", search ? "找到你心中的滨州。" : "沿着村名，回到故乡。", search ? "搜索村庄、乡镇与城市故事。" : "一份持续整理的乡土档案，让历史与日常在这里相遇。")}${searchForm(path, q, "输入村庄、乡镇" + (search ? "或文章标题" : ""))}${!search ? `<nav class="filter-chips" aria-label="按区县筛选"><a ${!district ? 'aria-current="page"' : ""} href="/place/?q=${encodeURIComponent(q)}">全部区县</a>${districts.map((d) => `<a ${district === d.district ? 'aria-current="page"' : ""} href="/place/?district=${encodeURIComponent(String(d.district))}&q=${encodeURIComponent(q)}">${esc(d.district)} <small>${d.total}</small></a>`).join("")}</nav>` : ""}${posts.length ? `${sectionHead("STORIES", "相关故事")}<div class="story-grid">${posts.map((p) => postCard(p)).join("")}</div>` : ""}<p class="source-note"><a href="/village-research/">查看村庄资料补遗：带年代的人口、土地与迁徙线索 →</a></p><div class="results-heading"><h2>${search ? "相关村庄" : "村庄档案"}</h2><span>找到 ${total?.total || 0} 条记录${q ? " · " + esc(q) : ""}</span></div><div class="village-grid">${vs.map(villageCard).join("")}</div>${!vs.length ? blank("没有找到相关村庄") : ""}${pager(url, Number(total?.total || 0), n, size)}</div>`,
     );
   }
+  if (path === "/village-research/") return render("村庄资料补遗", researchPage());
   let match = path.match(/^\/place\/(\d+)\/$/);
   if (match) {
     const v = await one(
@@ -228,7 +230,7 @@ export async function page(req: Request, env: Env, user: User | null) {
         )
         .join(
           "",
-        )}<aside class="source-note">资料依据：${esc(v.source_file || "地方志与历史资料")}。历史记载可能与现状不同，如有补充或纠错，欢迎<a href="/contact/">联系我们</a>。</aside></article>`,
+        )}${villageSupplement(v)}<aside class="source-note">资料依据：${esc(v.source_file || "地方志与历史资料")}。历史记载可能与现状不同，如有补充或纠错，欢迎<a href="/contact/">联系我们</a>。</aside></article>`,
       cleanText(v.history || v.evolution).slice(0, 150),
     );
   }

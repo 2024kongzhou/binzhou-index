@@ -30,6 +30,17 @@ const token = await new SignJWT({ userId: 1 })
   .setProtectedHeader({ alg: "HS256" })
   .setExpirationTime("1h")
   .sign(new TextEncoder().encode(env.JWT_SECRET));
+await test("village research dates evidence and does not attach a homonym from another district", async () => {
+  const page = await request('/village-research/');
+  assert.equal(page.status, 200);
+  const content = await page.text();
+  assert.match(content, /1998年7月第1版/);
+  assert.match(content, /不是现状数据/);
+  assert.equal((content.match(/class="village-card"/g) || []).length, 46);
+  sqlite.prepare("INSERT INTO villages(id,name,district,township,status) VALUES(99001,'东寨子','滨城区','滨城镇','published'),(99002,'东寨子','惠民县','香翟乡','published')").run();
+  assert.match(await (await request('/place/99001/')).text(), /1997年耕地1000亩/);
+  assert.doesNotMatch(await (await request('/place/99002/')).text(), /1997年耕地1000亩/);
+});
 await test("guest cannot read draft by list, search, slug or page", async () => {
   assert.equal((await request("/api/posts?status=draft")).status, 401);
   assert.equal((await request("/api/posts?slug=private-draft")).status, 404);

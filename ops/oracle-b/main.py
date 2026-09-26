@@ -259,9 +259,16 @@ class SiteClient:
             return {"Cookie": f"token={self.token}"}
 
     def get_posts(self, status="published"):
-        r = self.http.get("/api/posts", params={"status": status}, headers=self._auth_headers() if status != "published" else {})
-        r.raise_for_status()
-        return r.json().get("posts", [])
+        posts = []
+        for offset in range(0, 100001, 100):
+            r = self.http.get("/api/posts", params={"status": status, "limit": 100, "offset": offset},
+                              headers=self._auth_headers() if status != "published" else {})
+            r.raise_for_status()
+            page = r.json().get("posts", [])
+            posts.extend(page)
+            if len(page) < 100:
+                return posts
+        raise RuntimeError("Post archive exceeds safe pagination limit")
 
     def get_products(self):
         r = self.http.get("/api/products")
@@ -594,158 +601,11 @@ def generate_cover_image(prompt: str):
     raise last_err
 
 
-def generate_daily_topic():
-    """当没有新闻时，生成一个滨州相关选题"""
-    topics = [
-        "滨州黄河文化的历史传承与现代发展",
-        "滨州地方美食：从民间小吃到城市名片",
-        "走进滨州古村落，感受鲁北乡土记忆",
-        "滨州沿海生态：湿地、盐田与候鸟天堂",
-        "滨州传统手工艺的保护与传承",
-        "滨州运河记忆与水上商贸往事",
-        "滨州四季风物：春赏花、夏赶海、秋品果、冬观鸟",
-        "滨州名人轶事与地方文化印记",
-        "滨州工业遗产与城市变迁",
-        "滨州民俗节庆：乡村庙会与非遗展演",
-    ]
-    idx = datetime.now(BEIJING).day % len(topics)
-    return topics[idx]
-
-
 def daily_article():
-    """每日发布一篇配图文章"""
-    slug = f"daily-{bj_str('%Y%m%d')}"
-    existing = site_client.get_posts("published") + site_client.get_posts("draft")
-    if any(p.get("slug") == slug for p in existing):
-        logger.info("[每日文章] 当日文章已存在，跳过，保留正文与封面")
-        return {"ok": True, "skipped": True, "slug": slug}
-    logger.info("[每日文章] 开始生成")
-    state = load_json(STATE_FILE, {"seen": {}})
-    seen = state.get("seen", {})
+    from editorial import run
+    return run(sys.modules[__name__])
 
-    # 1. 尝试获取新闻素材
-    items = crawler.fetch_iqilu() + crawler.fetch_binzhouw()
-    fresh = [it for it in items if it["url"] not in seen]
 
-    title, content, excerpt = None, None, None
-    source_note = ""
-
-    if fresh:
-        top = fresh[0]
-        body = crawler.fetch_article(top["url"])
-        if body and len(body) > 200:
-            title = top["title"]
-            prompt = (
-                f"请根据以下滨州新闻素材，改写一篇适合本地生活网站发布的原创文章。"
-                f"要求：标题吸引人、结构清晰、语言流畅自然，约 1200 字。"
-                f"直接输出文章正文，不要包含原标题，开头不需要\"导语\"等字眼。\n\n"
-                f"素材标题：{top['title']}\n素材来源：{top.get('source', '网络')}\n正文：{body[:4000]}"
-            )
-            content = call_sensenova(prompt, "你是滨州本地生活网站主编，擅长把新闻改写成通俗易读的本地文章。", max_tokens=2500)
-            if not content or len(content.strip()) < 100:
-                content = body[:2000]
-            excerpt = call_sensenova(f"用60字以内总结这篇文章：{content[:2000]}", "输出纯文本摘要。", max_tokens=150)
-            if not excerpt or len(excerpt.strip()) < 5 or "提供文章内容" in excerpt:
-                excerpt = title
-            source_note = f"参考来源：{top.get('source', '网络')}"
-            seen[top["url"]] = bj_str("%Y-%m-%d")
-            cutoff = (now_bj() - timedelta(days=14)).strftime("%Y-%m-%d")
-            state["seen"] = {u: d for u, d in seen.items() if d >= cutoff}
-            save_json(STATE_FILE, state)
-
-    # 2. 无新闻则 AI 原创
-    if not content or len(content) < 200:
-        topic = generate_daily_topic()
-        title = call_sensenova(
-            f"为\"{topic}\"起一个吸引人的文章标题，15字以内，不要书名号和引号，只输出标题文字。",
-            "你是滨州本地内容编辑。", max_tokens=80,
-        )
-        if not title or len(title.strip()) < 2:
-            title = topic
-        content = call_sensenova(
-            f"以\"{topic}\"为主题，写一篇关于滨州的原创文章。"
-            "要求：标题即主题、内容真实可信、结构清晰、语言通俗易懂，约 1200 字。"
-            "直接输出正文，不要小标题，不要\"引言\"等套话。",
-            "你是滨州本地生活网站主编，熟悉滨州历史、文化、旅游与民俗。", max_tokens=2500,
-        )
-        # 内容为空时重试一次
-        if not content or len(content.strip()) < 100:
-            logger.warning("[每日文章] 内容生成空，重试一次")
-            content = call_sensenova(
-                f"写一篇关于\"{topic}\"的滨州原创文章，约1200字，直接输出正文。",
-                "滨州本地内容编辑", max_tokens=2500,
-            )
-        if not content or len(content.strip()) < 100:
-            content = f"{topic}是滨州本地生活与文化的重要组成部分。滨州位于黄河下游、鲁北平原，历史悠久、人文荟萃。从传统民俗到现代发展，这座城市始终保持着独特的魅力。本文将带您了解{topic}背后的故事，感受滨州的风土人情与发展变迁。"
-        excerpt = call_sensenova(f"用60字以内总结这篇文章：{content[:2000]}", "输出纯文本摘要。", max_tokens=150)
-        if not excerpt or len(excerpt.strip()) < 5 or "提供文章内容" in excerpt:
-            excerpt = title
-        source_note = "AI 原创内容"
-
-    # 清理标题
-    title = (title or "滨州每日一览").strip().replace("\"", "").replace("《", "").replace("》", "")
-    if len(title) > 60:
-        title = title[:60]
-
-    # 3. 生成并上传封面图
-    cover_url = ""
-    try:
-        img_prompt = call_sensenova(
-            f"生成一个AI绘图描述词，内容是：{title}。要求：写实风景/人文风格、色彩鲜明、无文字、适合网站封面。只输出描述词，50字以内。",
-            "你是视觉提示词工程师，只输出画面描述词。", max_tokens=200,
-        )
-        if not img_prompt or len(img_prompt.strip()) < 5:
-            img_prompt = f"滨州城市风光，{title}，写实风景风格，色彩鲜明，无文字，适合网站封面"
-        img_bytes, mime = generate_cover_image(img_prompt)
-        cover_url = upload_image_to_oracle(img_bytes, mime)
-        logger.info(f"[每日文章] 封面上传成功: {cover_url}")
-    except Exception as e:
-        logger.error(f"[每日文章] 封面生成失败: {e}")
-
-    # 4. 发布文章
-    slug = f"daily-{bj_str('%Y%m%d')}"
-    # 若当天文章已存在则更新，否则新建；保证静态页面 slug 可预测
-    existing_slug = None
-    try:
-        existing = site_client.get_posts("published") + site_client.get_posts("draft")
-        for p in existing:
-            if p.get("slug") == slug:
-                existing_slug = slug
-                break
-    except Exception as e:
-        logger.warning(f"[每日文章] 检查 slug 失败: {e}")
-
-    final_content = content
-    if source_note:
-        final_content += f"\n\n<small>{source_note}</small>"
-
-    if existing_slug:
-        post = site_client.update_post(
-            existing_slug,
-            title=title, content=final_content,
-            excerpt=excerpt or title, status="published", coverImage=cover_url,
-            aiGenerated=True,
-        )
-        logger.info(f"[每日文章] 更新当天文章: {slug}")
-    else:
-        post = site_client.create_post(
-            title=title, slug=slug, content=final_content,
-            excerpt=excerpt or title, status="published", coverImage=cover_url,
-            aiGenerated=True,
-        )
-
-    if isinstance(post, dict) and "error" in post:
-        logger.error(f"[每日文章] 发布失败: {post}")
-        pushplus("每日文章发布失败", f"<b>时间:</b> {bj_str()}<br><b>错误:</b> {post.get('error', '未知')}")
-        return {"ok": False, "error": post["error"]}
-
-    logger.info(f"[每日文章] 发布成功: {title} / {slug}")
-    pushplus("每日文章已发布",
-             f"<b>时间:</b> {bj_str()}<br>"
-             f"<b>标题:</b> {title}<br>"
-             f"<b>链接:</b> {SITE_BASE_URL}/blog/{slug}<br>"
-             f"<b>封面:</b> {'已上传' if cover_url else '未生成'}")
-    return {"ok": True, "title": title, "slug": slug, "cover": cover_url}
 # ==================== FastAPI ====================
 
 def require_key(request: Request):
