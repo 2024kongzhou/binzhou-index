@@ -31,12 +31,20 @@ jobs:
           name: pages-worker
           path: dist
           retention-days: 14
+      - name: Check Cloudflare credentials
+        run: node ops/check-cloudflare-auth.mjs
+        env:
+          CF_CURRENT_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CF_CURRENT_ACCOUNT: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CF_LEGACY_TOKEN: ${{ secrets.CLOUDFLAREAPITOKEN }}
+          CF_LEGACY_ACCOUNT: ${{ secrets.CLOUDFLAREACCOUNTID }}
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/wrangler-action@v3
         with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          apiToken: ${{ env.CF_DEPLOY_TOKEN }}
+          accountId: ${{ env.CF_DEPLOY_ACCOUNT }}
           wranglerVersion: '4.141.0'
           command: pages deploy dist --project-name=binzhou-index --branch=${{ github.ref_name }}
+
 
 
