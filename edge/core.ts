@@ -74,6 +74,24 @@ export function integer(
     ? n
     : fallback;
 }
+function productImages(value: unknown): string[] {
+  if (value === undefined || value === null || value === "") return [];
+  let entries: unknown[];
+  if (Array.isArray(value)) entries = value;
+  else if (typeof value === "string") {
+    try {
+      const parsed = JSON.parse(value);
+      entries = Array.isArray(parsed) ? parsed : value.split(/\r?\n/);
+    } catch {
+      entries = value.split(/\r?\n/);
+    }
+  } else throw new HttpError(400, "商品图片格式不正确");
+  const images = entries.map((v) => String(v).trim()).filter(Boolean);
+  if (images.length > 6) throw new HttpError(400, "商品图片最多上传 6 张");
+  if (images.some((v) => !/^\/api\/img\/[\w.-]+$/.test(v) && !/^https:\/\//.test(v)))
+    throw new HttpError(400, "商品图片须为站内图片地址或 HTTPS 图片链接");
+  return images;
+}
 export function camel(row: Row) {
   return Object.fromEntries(
     Object.entries(row).map(([k, v]) => [
@@ -473,12 +491,20 @@ export async function api(
     return json({ post: camel(p) });
   }
   if (path === "/api/products" && req.method === "GET") {
+    const filters = ["status='active'"], args: (string | number)[] = [];
+    if (q.has("id")) {
+      filters.push("id=?");
+      args.push(integer(q.get("id"), 0, 1, 1e9));
+    }
+    if (q.has("section") && ["goods", "ziliudi"].includes(q.get("section") || "")) {
+      filters.push("section=?");
+      args.push(q.get("section")!);
+    }
     const rows = await all(
       db,
-      "SELECT * FROM products WHERE status='active'" +
-        (q.has("id") ? " AND id=?" : "") +
+      "SELECT * FROM products WHERE " + filters.join(" AND ") +
         " ORDER BY id",
-      ...(q.has("id") ? [integer(q.get("id"), 0, 1, 1e9)] : []),
+      ...args,
     );
     return q.has("id")
       ? json({ product: rows[0] ? camel(rows[0]) : null }, rows[0] ? 200 : 404)
@@ -717,9 +743,10 @@ export async function api(
     const specs: Record<string, Record<string, [string, number]>> = {
       villages: { name: ["name", 120], district: ["district", 40], township: ["township", 80], location: ["location", 200], population: ["population", 100], farmland: ["farmland", 100], surnames: ["surnames", 500], history: ["history", 20000], evolution: ["evolution", 10000], remark: ["remark", 2000], sourceFile: ["source_file", 500], status: ["status", 20] },
       chronicles: { title: ["title", 160], content: ["content", 50000], category: ["category", 80], era: ["era", 80], tags: ["tags", 500], status: ["status", 20] },
-      products: { name: ["name", 120], description: ["description", 4000], price: ["price", 20], originalPrice: ["original_price", 20], images: ["images", 4000], stock: ["stock", 20], status: ["status", 20], storeName: ["store_name", 120], storeAddress: ["store_address", 300], storePhone: ["store_phone", 40], isSoftAd: ["is_soft_ad", 1] },
+      products: { name: ["name", 120], description: ["description", 12000], price: ["price", 20], originalPrice: ["original_price", 20], images: ["images", 6000], unit: ["unit", 40], material: ["material", 200], customerService: ["customer_service", 254], section: ["section", 20], stock: ["stock", 20], status: ["status", 20], storeName: ["store_name", 120], storeAddress: ["store_address", 300], storePhone: ["store_phone", 40], isSoftAd: ["is_soft_ad", 1] },
     };
     const allowedStatuses: Record<string, string[]> = { villages: ["published", "draft", "archived"], chronicles: ["published", "draft", "archived"], products: ["active", "inactive", "archived"] };
+    const allowedSections = ["goods", "ziliudi"];
     const updates: Array<[string, string | number]> = [];
     for (const [key, [column, max]] of Object.entries(specs[kind])) {
       if (b[key] === undefined) continue;
@@ -727,6 +754,12 @@ export async function api(
         const value = field(b, key, max, true);
         if (!allowedStatuses[kind].includes(value)) throw new HttpError(400, "资料状态不正确");
         updates.push([column, value]);
+      } else if (key === "section") {
+        const value = field(b, key, max, true);
+        if (!allowedSections.includes(value)) throw new HttpError(400, "商品板块不正确");
+        updates.push([column, value]);
+      } else if (key === "images") {
+        updates.push([column, JSON.stringify(productImages(b[key]))]);
       } else if (["price", "originalPrice", "stock"].includes(key)) {
         const value = Number(b[key]);
         if (!Number.isFinite(value) || value < 0 || (key === "stock" && !Number.isInteger(value))) throw new HttpError(400, "价格或库存数值不正确");
@@ -747,14 +780,31 @@ export async function api(
     requireUser(user, true);
     const b = await body(req),
       name = field(b, "name", 120, true),
-      price = Number(b.price);
+      price = Number(b.price),
+      originalPrice = b.originalPrice === undefined || b.originalPrice === "" ? null : Number(b.originalPrice),
+      stock = b.stock === undefined || b.stock === "" ? 0 : Number(b.stock),
+      section = b.section === undefined || b.section === "" ? "goods" : field(b, "section", 20);
     if (!Number.isFinite(price) || price < 0)
       throw new HttpError(400, "价格不正确");
+    if (originalPrice !== null && (!Number.isFinite(originalPrice) || originalPrice < 0))
+      throw new HttpError(400, "原价不正确");
+    if (!Number.isSafeInteger(stock) || stock < 0)
+      throw new HttpError(400, "库存必须为非负整数");
+    if (!["goods", "ziliudi"].includes(section)) throw new HttpError(400, "商品板块不正确");
     const p = await db
       .prepare(
-        "INSERT INTO products(name,price,description,status,created_at) VALUES(?,?,?,'active',unixepoch()) RETURNING *",
+        "INSERT INTO products(name,price,original_price,description,images,unit,material,customer_service,section,stock,store_name,store_address,store_phone,is_soft_ad,status,created_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,'active',unixepoch()) RETURNING *",
       )
-      .bind(name, price, field(b, "description", 4000))
+      .bind(
+        name, price,
+        originalPrice,
+        field(b, "description", 12000), JSON.stringify(productImages(b.images)),
+        field(b, "unit", 40), field(b, "material", 200),
+        field(b, "customerService", 254),
+        section, stock,
+        field(b, "storeName", 120), field(b, "storeAddress", 300),
+        field(b, "storePhone", 40), b.isSoftAd === true || b.isSoftAd === "true" ? 1 : 0,
+      )
       .first<Row>();
     return json({ product: camel(p!) });
   }

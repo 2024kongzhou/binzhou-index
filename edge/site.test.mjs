@@ -129,6 +129,7 @@ await test("public pages render and unknown routes return 404", async () => {
     "/blog/public-story/",
     "/product/",
     "/product/1/",
+    "/ziliudi/",
     "/login/",
     "/register/",
     "/contact/",
@@ -268,6 +269,26 @@ await test("admin can edit existing village, chronicle and product records", asy
   assert.equal((await request("/api/admin/records/products/1", "PUT", { price: "-5" }, token)).status, 400);
   const memberToken = await new SignJWT({ userId: 2 }).setProtectedHeader({ alg: "HS256" }).setExpirationTime("1h").sign(new TextEncoder().encode(env.JWT_SECRET));
   assert.equal((await request("/api/admin/records/villages/1", "PUT", { history: "unauthorized" }, memberToken)).status, 403);
+});
+await test("product manager supports a ziliudi section and no more than six images", async () => {
+  const images = ["/api/img/one.jpg", "https://images.example.test/two.jpg"];
+  const created = await request("/api/products", "POST", {
+    name: "滨州秋梨", price: "28", unit: "箱", material: "阳信鸭梨",
+    customerService: "13300000000", section: "ziliudi", images: images.join("\n"),
+    description: "产地与规格以商品详情为准。", stock: "12",
+  }, token);
+  assert.equal(created.status, 200);
+  const record = sqlite.prepare("SELECT section,unit,material,customer_service,images FROM products WHERE name='滨州秋梨'").get();
+  assert.equal(record.section, "ziliudi");
+  assert.equal(record.unit, "箱");
+  assert.equal(record.material, "阳信鸭梨");
+  assert.equal(record.customer_service, "13300000000");
+  assert.deepEqual(JSON.parse(record.images), images);
+  assert.equal((await request("/api/products?section=ziliudi")).status, 200);
+  const tooMany = await request("/api/products", "POST", {
+    name: "超限图片", price: "1", images: Array.from({ length: 7 }, (_, i) => `/api/img/${i}.jpg`).join("\n"),
+  }, token);
+  assert.equal(tooMany.status, 400);
 });
 await test("editing an article preserves omitted image and AI attribution", async () => {
   sqlite.exec(
