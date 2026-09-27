@@ -490,16 +490,64 @@ export async function api(
     if (!p) throw new HttpError(404, "文章不存在");
     return json({ post: camel(p) });
   }
+  if (path === "/api/notes" && req.method === "GET") {
+    const requested = q.get("status") || "published";
+    if (!["published", "draft", "archived"].includes(requested))
+      throw new HttpError(400, "笔记状态不正确");
+    if (requested !== "published") requireUser(user, true);
+    if (q.get("slug")) {
+      const note = await one(
+        db,
+        "SELECT * FROM personal_notes WHERE slug=? AND (status='published' OR ?=1)",
+        q.get("slug")!.slice(0, 160),
+        user?.role === "admin" ? 1 : 0,
+      );
+      return json({ note: note ? camel(note) : null }, note ? 200 : 404);
+    }
+    const search = q.get("search")?.slice(0, 80) || "";
+    const page = integer(q.get("page"), 1, 1, 10000);
+    const where = "status=? AND (?='' OR title LIKE ? OR summary LIKE ? OR content LIKE ?)";
+    const args = [requested, search, `%${search}%`, `%${search}%`, `%${search}%`];
+    const notes = await all(db, `SELECT id,title,slug,category,summary,cover_image,status,published_at,created_at FROM personal_notes WHERE ${where} ORDER BY published_at DESC,id DESC LIMIT 12 OFFSET ?`, ...args, (page - 1) * 12);
+    const count = await one(db, `SELECT COUNT(*) total FROM personal_notes WHERE ${where}`, ...args);
+    return json({ notes: notes.map(camel), pagination: { page, total: Number(count?.total || 0), limit: 12 } });
+  }
+  if ((path === "/api/notes" || /^\/api\/notes\/[^/]+\/?$/.test(path)) && ["POST", "PUT"].includes(req.method)) {
+    requireUser(user, true);
+    const b = await body(req);
+    const slug = req.method === "PUT" ? decodeURIComponent(path.match(/^\/api\/notes\/([^/]+)/)![1]) : field(b, "slug", 160, true);
+    if (!/^[a-z0-9_-]{2,160}$/.test(slug)) throw new HttpError(400, "笔记地址须为小写英文字母、数字或连接符");
+    const existing = req.method === "PUT" ? await one(db, "SELECT * FROM personal_notes WHERE slug=?", slug) : null;
+    if (req.method === "PUT" && !existing) throw new HttpError(404, "笔记不存在");
+    const title = field(b, "title", 200, true);
+    const content = field(b, "content", 60000, true);
+    const summary = field(b, "summary", 500);
+    const category = field(b, "category", 20) || "note";
+    const status = field(b, "status", 20) || "draft";
+    const cover = b.coverImage === undefined ? String(existing?.cover_image || "") : field(b, "coverImage", 1000);
+    if (!["essay", "tutorial", "note"].includes(category) || !["draft", "published", "archived"].includes(status))
+      throw new HttpError(400, "笔记分类或状态不正确");
+    if (cover && !/^\/api\/img\/[\w.-]+$/.test(cover) && !/^https:\/\//.test(cover))
+      throw new HttpError(400, "封面须为站内图片或 HTTPS 地址");
+    let note: Row | null;
+    if (req.method === "PUT") {
+      note = await db.prepare("UPDATE personal_notes SET title=?,category=?,summary=?,content=?,cover_image=?,status=?,updated_at=unixepoch(),published_at=CASE WHEN ?='published' THEN COALESCE(published_at,unixepoch()) ELSE published_at END WHERE slug=? RETURNING *")
+        .bind(title, category, summary, content, cover, status, status, slug).first<Row>();
+    } else {
+      if (await one(db, "SELECT id FROM personal_notes WHERE slug=?", slug)) throw new HttpError(409, "笔记地址已存在");
+      note = await db.prepare("INSERT INTO personal_notes(title,slug,category,summary,content,cover_image,status,author_id,created_at,updated_at,published_at) VALUES(?,?,?,?,?,?,?,?,unixepoch(),unixepoch(),CASE WHEN ?='published' THEN unixepoch() ELSE NULL END) RETURNING *")
+        .bind(title, slug, category, summary, content, cover, status, user.id, status).first<Row>();
+    }
+    return json({ note: camel(note!) }, req.method === "POST" ? 201 : 200);
+  }
   if (path === "/api/products" && req.method === "GET") {
     const filters = ["status='active'"], args: (string | number)[] = [];
+    if (q.has("section") && q.get("section") !== "goods") throw new HttpError(400, "商品板块不正确");
     if (q.has("id")) {
       filters.push("id=?");
       args.push(integer(q.get("id"), 0, 1, 1e9));
     }
-    if (q.has("section") && ["goods", "ziliudi"].includes(q.get("section") || "")) {
-      filters.push("section=?");
-      args.push(q.get("section")!);
-    }
+    filters.push("section='goods'");
     const rows = await all(
       db,
       "SELECT * FROM products WHERE " + filters.join(" AND ") +
@@ -746,7 +794,7 @@ export async function api(
       products: { name: ["name", 120], description: ["description", 12000], price: ["price", 20], originalPrice: ["original_price", 20], images: ["images", 6000], unit: ["unit", 40], material: ["material", 200], customerService: ["customer_service", 254], section: ["section", 20], stock: ["stock", 20], status: ["status", 20], storeName: ["store_name", 120], storeAddress: ["store_address", 300], storePhone: ["store_phone", 40], isSoftAd: ["is_soft_ad", 1] },
     };
     const allowedStatuses: Record<string, string[]> = { villages: ["published", "draft", "archived"], chronicles: ["published", "draft", "archived"], products: ["active", "inactive", "archived"] };
-    const allowedSections = ["goods", "ziliudi"];
+    const allowedSections = ["goods"];
     const updates: Array<[string, string | number]> = [];
     for (const [key, [column, max]] of Object.entries(specs[kind])) {
       if (b[key] === undefined) continue;
@@ -790,7 +838,7 @@ export async function api(
       throw new HttpError(400, "原价不正确");
     if (!Number.isSafeInteger(stock) || stock < 0)
       throw new HttpError(400, "库存必须为非负整数");
-    if (!["goods", "ziliudi"].includes(section)) throw new HttpError(400, "商品板块不正确");
+    if (section !== "goods") throw new HttpError(400, "商品板块不正确");
     const p = await db
       .prepare(
         "INSERT INTO products(name,price,original_price,description,images,unit,material,customer_service,section,stock,store_name,store_address,store_phone,is_soft_ad,status,created_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,'active',unixepoch()) RETURNING *",
