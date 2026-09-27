@@ -154,7 +154,7 @@ export async function page(req: Request, env: Env, user: User | null) {
       ),
       all(
         db,
-        "SELECT * FROM posts WHERE status='published' AND title NOT LIKE '%?%' AND content NOT LIKE '%?%' ORDER BY created_at DESC,id DESC LIMIT 3",
+        "SELECT * FROM posts WHERE status='published' AND title NOT LIKE '%?%' AND content NOT LIKE '%?%' AND id IN (SELECT MAX(id) FROM posts WHERE status='published' GROUP BY title) ORDER BY created_at DESC,id DESC LIMIT 3",
       ),
       all(
         db,
@@ -258,7 +258,7 @@ export async function page(req: Request, env: Env, user: User | null) {
   }
   if (path === "/blog/") {
     const n = integer(url.searchParams.get("page"), 1, 1, 10000),
-      w = "status='published' AND title NOT LIKE '%?%' AND content NOT LIKE '%?%'" + (q ? " AND title LIKE ?" : ""),
+      w = "status='published' AND title NOT LIKE '%?%' AND content NOT LIKE '%?%' AND id IN (SELECT MAX(id) FROM posts WHERE status='published' GROUP BY title)" + (q ? " AND title LIKE ?" : ""),
       args = q ? ["%" + q + "%"] : [];
     const ps = await all(
         db,

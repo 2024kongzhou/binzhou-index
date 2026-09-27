@@ -442,6 +442,8 @@ export async function api(
       !/^https:\/\//.test(cover)
     )
       throw new HttpError(400, "封面地址不正确");
+    if (status === "published" && req.method === "POST" && !cover)
+      throw new HttpError(400, "发布文章必须提供与滨州内容相关且来源可追溯的封面图");
     if (req.method === "POST" && status === "published" && await one(db, "SELECT id FROM posts WHERE title=? AND status='published'", title))
       throw new HttpError(409, "已有同标题文章，请更换主题或编辑原文");
     let p: Row | null;

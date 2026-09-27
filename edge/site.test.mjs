@@ -163,6 +163,7 @@ await test("new article renders immediately; HTML content is escaped", async () 
       title: "<img src=x onerror=alert(1)>",
       slug: "new-article",
       content: "Hello <script>alert(1)</script>",
+      coverImage: "/api/img/sample.jpg",
       status: "published",
     },
     token,
@@ -173,7 +174,7 @@ await test("new article renders immediately; HTML content is escaped", async () 
   const html = await p.text();
   assert.ok(!html.includes("<img src=x"));
   assert.ok(html.includes("&lt;img"));
-  assert.equal((await request("/api/posts", "POST", {title:"<img src=x onerror=alert(1)>",slug:"duplicate-title",content:"another",status:"published"}, token)).status, 409);
+  assert.equal((await request("/api/posts", "POST", {title:"<img src=x onerror=alert(1)>",slug:"duplicate-title",content:"another",coverImage:"/api/img/sample.jpg",status:"published"}, token)).status, 409);
 });
 await test("login preserves password whitespace and cookie is protected", async () => {
   const r = await request("/api/auth/login", "POST", {
