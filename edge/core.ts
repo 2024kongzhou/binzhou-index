@@ -706,6 +706,43 @@ export async function api(
       .run();
     return json({ ok: true });
   }
+  const recordMatch = path.match(/^\/api\/admin\/records\/(villages|chronicles|products)\/(\d+)$/);
+  if (recordMatch && req.method === "PUT") {
+    requireUser(user, true);
+    const [, kind, rawId] = recordMatch,
+      id = integer(rawId, 0, 1, 1e9),
+      b = await body(req),
+      existing = await one(db, `SELECT id FROM ${kind} WHERE id=?`, id);
+    if (!existing) throw new HttpError(404, "资料记录不存在");
+    const specs: Record<string, Record<string, [string, number]>> = {
+      villages: { name: ["name", 120], district: ["district", 40], township: ["township", 80], location: ["location", 200], population: ["population", 100], farmland: ["farmland", 100], surnames: ["surnames", 500], history: ["history", 20000], evolution: ["evolution", 10000], remark: ["remark", 2000], sourceFile: ["source_file", 500], status: ["status", 20] },
+      chronicles: { title: ["title", 160], content: ["content", 50000], category: ["category", 80], era: ["era", 80], tags: ["tags", 500], status: ["status", 20] },
+      products: { name: ["name", 120], description: ["description", 4000], price: ["price", 20], originalPrice: ["original_price", 20], images: ["images", 4000], stock: ["stock", 20], status: ["status", 20], storeName: ["store_name", 120], storeAddress: ["store_address", 300], storePhone: ["store_phone", 40], isSoftAd: ["is_soft_ad", 1] },
+    };
+    const allowedStatuses: Record<string, string[]> = { villages: ["published", "draft", "archived"], chronicles: ["published", "draft", "archived"], products: ["active", "inactive", "archived"] };
+    const updates: Array<[string, string | number]> = [];
+    for (const [key, [column, max]] of Object.entries(specs[kind])) {
+      if (b[key] === undefined) continue;
+      if (key === "status") {
+        const value = field(b, key, max, true);
+        if (!allowedStatuses[kind].includes(value)) throw new HttpError(400, "资料状态不正确");
+        updates.push([column, value]);
+      } else if (["price", "originalPrice", "stock"].includes(key)) {
+        const value = Number(b[key]);
+        if (!Number.isFinite(value) || value < 0 || (key === "stock" && !Number.isInteger(value))) throw new HttpError(400, "价格或库存数值不正确");
+        updates.push([column, value]);
+      } else if (key === "isSoftAd") {
+        if (![true, false, "true", "false"].includes(b[key] as boolean | string)) throw new HttpError(400, "广告标记不正确");
+        updates.push([column, b[key] === true || b[key] === "true" ? 1 : 0]);
+      } else {
+        updates.push([column, field(b, key, max, key === "name" || key === "title")]);
+      }
+    }
+    if (!updates.length) throw new HttpError(400, "没有可保存的字段");
+    const assignments = updates.map(([column]) => `${column}=?`).join(",");
+    const result = await db.prepare(`UPDATE ${kind} SET ${assignments} WHERE id=? RETURNING *`).bind(...updates.map(([, value]) => value), id).first<Row>();
+    return json({ record: camel(result!) });
+  }
   if (path === "/api/products" && req.method === "POST") {
     requireUser(user, true);
     const b = await body(req),
