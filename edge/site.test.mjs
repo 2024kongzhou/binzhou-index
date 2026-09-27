@@ -84,6 +84,8 @@ await test('孙家 preserves the page evidence even when the gazetteer records a
   assert.match(data.village.population,/13户、53人/);
   assert.match(data.village.sourceFile,/第218页/);
   assert.match(data.village.evolution,/独立自然村/);
+  assert.match(data.village.versionTag,/逐字核对/);
+  assert.match(data.village.remark,/逐字核对录入/);
 });
 await test('gazetteer stays primary and suspect values are quarantined only on exact matches', async () => {
   sqlite.prepare("INSERT INTO villages(id,name,district,township,population,farmland,status) VALUES(99005,'柳家','滨城区','滨城镇','43664','55993亩','published'),(99006,'东关','滨城区','滨城镇','43664','55993亩','published'),(99007,'东关','滨城区','滨城镇','123','456亩','published')").run();
