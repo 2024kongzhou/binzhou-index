@@ -446,3 +446,10 @@ await test("homepage explains when no verified products are available", async ()
   assert.match(home, /本地好物正在核实/);
   assert.match(home, /商家资料、图片和联系方式核对后再展示/);
 });
+
+await test("OCR name labels are retained as drafts, not public village pages", async () => {
+  sqlite.exec("INSERT INTO villages(id,name,district,township,status) VALUES(99103,'曾用名','沾化区','富国镇','published')");
+  sqlite.exec(readFileSync(new URL("../drizzle/migrations/0006_quarantine_name_label_villages.sql", import.meta.url), "utf8"));
+  assert.equal(sqlite.prepare("SELECT status FROM villages WHERE id=99103").get().status, "draft");
+  assert.equal((await request("/place/99103/")).status, 404);
+});
