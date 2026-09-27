@@ -636,6 +636,59 @@ export async function api(
       ).map(camel),
     });
   }
+  if (path === "/api/admin/users" && req.method === "POST") {
+    requireUser(user, true);
+    const b = await body(req),
+      username = field(b, "username", 40, true),
+      email = field(b, "email", 254, true).toLowerCase(),
+      password = passwordField(b),
+      role = field(b, "role", 20, true);
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
+      throw new HttpError(400, "邮箱格式不正确");
+    if (password.length < 10)
+      throw new HttpError(400, "初始密码至少需要 10 个字符");
+    if (!["admin", "user"].includes(role))
+      throw new HttpError(400, "账号角色不正确");
+    if (await one(db, "SELECT id FROM users WHERE lower(email)=? OR username=?", email, username))
+      throw new HttpError(409, "用户名或邮箱已被使用");
+    let created: Row | null;
+    try {
+      created = await db.prepare(
+        "INSERT INTO users(username,email,password_hash,role,is_active,created_at) VALUES(?,?,?,?,1,unixepoch()) RETURNING id,username,email,role,is_active",
+      ).bind(username, email, await bcrypt.hash(password, 10), role).first<Row>();
+    } catch {
+      throw new HttpError(409, "用户名或邮箱已被使用");
+    }
+    return json({ user: camel(created!) }, 201);
+  }
+  const userMatch = path.match(/^\/api\/admin\/users\/(\d+)$/);
+  if (userMatch && req.method === "PUT") {
+    requireUser(user, true);
+    const id = integer(userMatch[1], 0, 1, 1e9),
+      b = await body(req),
+      existing = await one(db, "SELECT id,role,is_active FROM users WHERE id=?", id);
+    if (!existing) throw new HttpError(404, "账号不存在");
+    const role = b.role === undefined ? String(existing.role) : field(b, "role", 20, true),
+      active = b.isActive === undefined ? Number(existing.is_active) : b.isActive === true || b.isActive === "true" ? 1 : b.isActive === false || b.isActive === "false" ? 0 : -1,
+      password = b.password === undefined || b.password === "" ? "" : passwordField(b);
+    if (!["admin", "user"].includes(role) || active < 0)
+      throw new HttpError(400, "角色或账号状态不正确");
+    if (password && password.length < 10)
+      throw new HttpError(400, "新密码至少需要 10 个字符");
+    if (id === user.id && (role !== "admin" || active !== 1))
+      throw new HttpError(400, "不能降低或停用当前登录的管理员账号");
+    if (existing.role === "admin" && existing.is_active === 1 && (role !== "admin" || active !== 1)) {
+      const activeAdmins = await one(db, "SELECT COUNT(*) count FROM users WHERE role='admin' AND is_active=1");
+      if (Number(activeAdmins?.count || 0) <= 1)
+        throw new HttpError(409, "至少要保留一个启用的管理员账号");
+    }
+    const updated = password
+      ? await db.prepare("UPDATE users SET role=?,is_active=?,password_hash=? WHERE id=? RETURNING id,username,email,role,is_active")
+          .bind(role, active, await bcrypt.hash(password, 10), id).first<Row>()
+      : await db.prepare("UPDATE users SET role=?,is_active=? WHERE id=? RETURNING id,username,email,role,is_active")
+          .bind(role, active, id).first<Row>();
+    return json({ user: camel(updated!) });
+  }
   if (path === "/api/admin/status" && req.method === "POST") {
     requireUser(user, true);
     const b = await body(req),
