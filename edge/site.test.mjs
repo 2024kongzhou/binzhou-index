@@ -422,8 +422,9 @@ await test("publication cleanup hides OCR towns, demo merchandise and invalid du
   const body = "滨州".repeat(800);
   sqlite.prepare("INSERT INTO posts(id,title,slug,content,status,cover_image) VALUES(1000,'重复题材','old-copy',?,'published','/api/img/sample.jpg'),(1001,'重复题材','new-copy',?,'published','/api/img/sample.jpg'),(1002,'无封面','no-cover',?,'published','')").run(body, body, body);
   sqlite.exec(readFileSync(new URL("../drizzle/migrations/0003_quarantine_public_placeholders.sql", import.meta.url), "utf8"));
+  sqlite.exec(readFileSync(new URL("../drizzle/migrations/0004_archive_demo_products.sql", import.meta.url), "utf8"));
   assert.equal(sqlite.prepare("SELECT status FROM villages WHERE id=6283").get().status, "draft");
-  assert.equal(sqlite.prepare("SELECT status FROM products WHERE id=22").get().status, "draft");
+  assert.equal(sqlite.prepare("SELECT status FROM products WHERE id=22").get().status, "archived");
   assert.equal(sqlite.prepare("SELECT status FROM posts WHERE id=1000").get().status, "archived");
   assert.equal(sqlite.prepare("SELECT status FROM posts WHERE id=1001").get().status, "published");
   assert.equal(sqlite.prepare("SELECT status FROM posts WHERE id=1002").get().status, "archived");
