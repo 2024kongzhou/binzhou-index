@@ -60,6 +60,17 @@ await test('verified historical records replace conflicting summaries in both AP
   assert.equal(other.village.population,'12');
   assert.equal(sqlite.prepare('SELECT population FROM villages WHERE id=99003').get().population,'43664');
 });
+await test('肖韩 exposes complete gazetteer figures and corroborating local sources', async () => {
+  sqlite.prepare("INSERT INTO villages(id,name,district,township,status) VALUES(99008,'肖韩','滨城区','滨城镇','published')").run();
+  const data=await (await request('/api/villages?id=99008')).json();
+  assert.match(data.village.population,/140户、547人/);
+  assert.match(data.village.farmland,/650亩/);
+  assert.match(data.village.sourceFile,/滨城年鉴1998/);
+  assert.match(data.village.history,/滨州地区志/);
+  const page=await (await request('/place/99008/')).text();
+  assert.match(page,/547人/);
+  assert.match(page,/滨城年鉴1998/);
+});
 await test('gazetteer stays primary and suspect values are quarantined only on exact matches', async () => {
   sqlite.prepare("INSERT INTO villages(id,name,district,township,population,farmland,status) VALUES(99005,'柳家','滨城区','滨城镇','43664','55993亩','published'),(99006,'东关','滨城区','滨城镇','43664','55993亩','published'),(99007,'东关','滨城区','滨城镇','123','456亩','published')").run();
   const primary=await (await request('/api/villages?id=99005')).json();
