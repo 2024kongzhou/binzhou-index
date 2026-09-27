@@ -285,11 +285,13 @@ export async function page(req: Request, env: Env, user: User | null) {
       user?.role === "admin" ? 1 : 0,
     );
     if (!p) throw new HttpError(404, "文章不存在或尚未发布");
-    const comments = await all(
-      db,
-      "SELECT author_name,content,created_at FROM comments WHERE post_id=? AND status='approved' ORDER BY id DESC LIMIT 30",
-      p.id,
-    );
+    const postFilter = "status='published' AND title NOT LIKE '%?%' AND content NOT LIKE '%?%' AND (slug NOT LIKE 'daily-%' OR (length(content) BETWEEN 600 AND 1000 AND cover_image<>''))";
+    const [previous, next, comments] = await Promise.all([
+      one(db, `SELECT slug,title FROM posts WHERE ${postFilter} AND (created_at>? OR (created_at=? AND id>?)) ORDER BY created_at ASC,id ASC LIMIT 1`, p.created_at, p.created_at, p.id),
+      one(db, `SELECT slug,title FROM posts WHERE ${postFilter} AND (created_at<? OR (created_at=? AND id<?)) ORDER BY created_at DESC,id DESC LIMIT 1`, p.created_at, p.created_at, p.id),
+      all(db, "SELECT author_name,content,created_at FROM comments WHERE post_id=? AND status='approved' ORDER BY id DESC LIMIT 30", p.id),
+    ]);
+    const articleNav = `<nav class="article-nav" aria-label="文章导航">${previous ? `<a href="/blog/${encodeURIComponent(String(previous.slug))}/"><span>上一篇</span><strong>${esc(previous.title)}</strong></a>` : "<span></span>"}${next ? `<a href="/blog/${encodeURIComponent(String(next.slug))}/"><span>下一篇</span><strong>${esc(next.title)}</strong></a>` : "<span></span>"}</nav>`;
     return render(
       String(p.title),
       `<article class="container reading"><a class="breadcrumb" href="/blog/">← 返回滨州故事</a><div class="article-heading">${badge(p.ai_generated ? "AI 辅助创作 · 请核实重要信息" : "滨州故事")}${p.status !== "published" ? badge("管理员预览 · 未公开") : ""}<h1>${esc(p.title)}</h1><p>${date(p.created_at)} · 约 ${Math.max(1, Math.ceil(cleanText(p.content).length / 500))} 分钟阅读</p></div>${p.cover_image ? `<img class="article-cover" src="${imageUrl(p.cover_image)}" alt="文章配图" width="1000" height="600">` : ""}<div class="prose">${cleanText(
@@ -299,7 +301,7 @@ export async function page(req: Request, env: Env, user: User | null) {
         .map((t) => `<p>${esc(t)}</p>`)
         .join(
           "",
-        )}</div><aside class="source-note">内容仅供参考。涉及政策、价格、医疗等信息，请以相关机构最新公布内容为准。</aside><section class="comments"><h2>留下你的想法</h2>${user ? `<form data-api="/api/comments" class="stack"><input type="hidden" name="postId" value="${p.id}">${textarea("content", "评论内容")}${feedback}<button class="button" type="submit">提交评论</button><small>评论审核通过后显示。</small></form>` : '<p><a href="/login/">登录</a>后参与讨论。</p>'}${comments.map((c) => `<div class="comment"><strong>${esc(c.author_name)}</strong><time>${date(c.created_at)}</time><p>${esc(c.content)}</p></div>`).join("")}</section></article>`,
+        )}</div><aside class="source-note">内容仅供参考。涉及政策、价格、医疗等信息，请以相关机构最新公布内容为准。</aside>${articleNav}<section class="comments"><h2>留下你的想法</h2>${user ? `<form data-api="/api/comments" class="stack"><input type="hidden" name="postId" value="${p.id}">${textarea("content", "评论内容")}${feedback}<button class="button" type="submit">提交评论</button><small>评论审核通过后显示。</small></form>` : '<p><a href="/login/">登录</a>后参与讨论。</p>'}${comments.map((c) => `<div class="comment"><strong>${esc(c.author_name)}</strong><time>${date(c.created_at)}</time><p>${esc(c.content)}</p></div>`).join("")}</section></article>`,
       cleanText(p.excerpt || p.content).slice(0, 150),
     );
   }

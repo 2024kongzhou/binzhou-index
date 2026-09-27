@@ -176,6 +176,11 @@ await test("new article renders immediately; HTML content is escaped", async () 
   assert.ok(html.includes("&lt;img"));
   assert.equal((await request("/api/posts", "POST", {title:"<img src=x onerror=alert(1)>",slug:"duplicate-title",content:"another",coverImage:"/api/img/sample.jpg",status:"published"}, token)).status, 409);
 });
+await test("article detail shows previous and next navigation", async () => {
+  const page = await (await request('/blog/public-story/')).text();
+  assert.match(page,/文章导航/);
+  assert.match(page,/上一篇|下一篇/);
+});
 await test("daily articles require 600-1000 characters and a cover image", async () => {
   const short = await request("/api/posts", "POST", {title:"每日短文",slug:"daily-short",content:"太短",status:"published",coverImage:"/api/img/sample.jpg"}, token);
   assert.equal(short.status,400);
