@@ -55,6 +55,9 @@ await test("placeholder posts are excluded from all public article surfaces", as
   assert.equal((await request('/api/posts?slug=test-placeholder')).status,404);
   assert.equal((await request('/blog/test-placeholder/')).status,404);
   assert.doesNotMatch(await (await request('/blog/')).text(),/test-placeholder/);
+  sqlite.prepare("INSERT INTO posts(title,slug,content,status) VALUES('带来源参数的文章','query-source-link','资料来源：https://example.test/detail?id=123','published')").run();
+  assert.equal((await request('/api/posts?slug=query-source-link')).status,200);
+  assert.equal((await request('/blog/query-source-link/')).status,200);
 });
 await test('verified historical records replace conflicting summaries in both API and page', async () => {
   sqlite.prepare("INSERT INTO villages(id,name,district,township,population,farmland,status) VALUES(99003,'北关','滨城区','滨城镇','43664','55993亩','published'),(99004,'北关','惠民县','惠民镇','12','10亩','published')").run();
