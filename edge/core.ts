@@ -308,7 +308,7 @@ export async function api(
     return json(
       await one(
         db,
-        "SELECT (SELECT COUNT(*) FROM villages WHERE status='published' AND name<>'曾用名') villages,(SELECT COUNT(*) FROM posts WHERE status='published') posts,(SELECT COUNT(*) FROM products WHERE status='active') products,(SELECT COUNT(*) FROM chronicles WHERE status='published') chronicles",
+        "SELECT (SELECT COUNT(*) FROM villages WHERE status='published' AND name<>'曾用名') villages,(SELECT COUNT(*) FROM posts WHERE status='published' AND title NOT LIKE '%?%' AND content NOT LIKE '%?%') posts,(SELECT COUNT(*) FROM products WHERE status='active') products,(SELECT COUNT(*) FROM chronicles WHERE status='published') chronicles",
       ),
     );
   }
@@ -361,13 +361,13 @@ export async function api(
     if (q.get("slug")) {
       const p = await one(
         db,
-        "SELECT * FROM posts WHERE slug=? AND (status='published' OR ?=1)",
+        "SELECT * FROM posts WHERE slug=? AND title NOT LIKE '%?%' AND content NOT LIKE '%?%' AND (status='published' OR ?=1)",
         q.get("slug")!,
         user?.role === "admin" ? 1 : 0,
       );
       return json({ post: p ? camel(p) : null }, p ? 200 : 404);
     }
-    const where = ["status=?"],
+    const where = ["status=?", "title NOT LIKE '%?%'", "content NOT LIKE '%?%'"],
       args: (string | number)[] = [requested];
     if (q.get("search")) {
       where.push("title LIKE ?");

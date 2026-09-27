@@ -50,6 +50,12 @@ await test("guest cannot read draft by list, search, slug or page", async () => 
     0,
   );
 });
+await test("placeholder posts are excluded from all public article surfaces", async () => {
+  sqlite.prepare("INSERT INTO posts(title,slug,content,status) VALUES('????','test-placeholder','????','published')").run();
+  assert.equal((await request('/api/posts?slug=test-placeholder')).status,404);
+  assert.equal((await request('/blog/test-placeholder/')).status,404);
+  assert.doesNotMatch(await (await request('/blog/')).text(),/test-placeholder/);
+});
 await test('verified historical records replace conflicting summaries in both API and page', async () => {
   sqlite.prepare("INSERT INTO villages(id,name,district,township,population,farmland,status) VALUES(99003,'北关','滨城区','滨城镇','43664','55993亩','published'),(99004,'北关','惠民县','惠民镇','12','10亩','published')").run();
   const body=await (await request('/place/99003/')).text();
