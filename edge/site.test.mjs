@@ -439,3 +439,10 @@ await test("exact village duplicates are hidden while different-source records s
   assert.equal(sqlite.prepare("SELECT status FROM villages WHERE id=99101").get().status, "draft");
   assert.equal(sqlite.prepare("SELECT status FROM villages WHERE id=99102").get().status, "published");
 });
+
+await test("homepage explains when no verified products are available", async () => {
+  sqlite.exec("UPDATE products SET status='archived'");
+  const home = await (await request("/")).text();
+  assert.match(home, /本地好物正在核实/);
+  assert.match(home, /商家资料、图片和联系方式核对后再展示/);
+});
