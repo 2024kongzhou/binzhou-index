@@ -270,25 +270,52 @@ await test("admin can edit existing village, chronicle and product records", asy
   const memberToken = await new SignJWT({ userId: 2 }).setProtectedHeader({ alg: "HS256" }).setExpirationTime("1h").sign(new TextEncoder().encode(env.JWT_SECRET));
   assert.equal((await request("/api/admin/records/villages/1", "PUT", { history: "unauthorized" }, memberToken)).status, 403);
 });
-await test("product manager supports a ziliudi section and no more than six images", async () => {
+await test("product manager keeps goods separate from personal notes and limits images", async () => {
   const images = ["/api/img/one.jpg", "https://images.example.test/two.jpg"];
   const created = await request("/api/products", "POST", {
     name: "滨州秋梨", price: "28", unit: "箱", material: "阳信鸭梨",
-    customerService: "13300000000", section: "ziliudi", images: images.join("\n"),
+    customerService: "13300000000", section: "goods", images: images.join("\n"),
     description: "产地与规格以商品详情为准。", stock: "12",
   }, token);
   assert.equal(created.status, 200);
   const record = sqlite.prepare("SELECT section,unit,material,customer_service,images FROM products WHERE name='滨州秋梨'").get();
-  assert.equal(record.section, "ziliudi");
+  assert.equal(record.section, "goods");
   assert.equal(record.unit, "箱");
   assert.equal(record.material, "阳信鸭梨");
   assert.equal(record.customer_service, "13300000000");
   assert.deepEqual(JSON.parse(record.images), images);
-  assert.equal((await request("/api/products?section=ziliudi")).status, 200);
+  assert.equal((await request("/api/products?section=ziliudi")).status, 400);
+  assert.equal((await request("/api/products", "POST", { name: "误入自留地", price: "1", section: "ziliudi" }, token)).status, 400);
   const tooMany = await request("/api/products", "POST", {
     name: "超限图片", price: "1", images: Array.from({ length: 7 }, (_, i) => `/api/img/${i}.jpg`).join("\n"),
   }, token);
   assert.equal(tooMany.status, 400);
+});
+await test("personal notes support private drafts, short tutorials and safe Markdown", async () => {
+  const memberToken = await new SignJWT({ userId: 2 }).setProtectedHeader({ alg: "HS256" }).setExpirationTime("1h").sign(new TextEncoder().encode(env.JWT_SECRET));
+  assert.equal((await request("/api/notes", "POST", { title: "不能写" }, memberToken)).status, 403);
+  const draft = await request("/api/notes", "POST", {
+    title: "我的第一篇教程", slug: "first-tutorial", category: "tutorial", status: "draft",
+    summary: "整理日常经验", content: "## 起步\n\n短教程。\n\n```js\n<script>alert(1)</script>\n```",
+  }, token);
+  assert.equal(draft.status, 201);
+  assert.equal((await request("/ziliudi/first-tutorial/")).status, 404);
+  assert.equal((await request("/api/notes?slug=first-tutorial")).status, 404);
+  assert.equal((await request("/ziliudi/first-tutorial/", "GET", undefined, token)).status, 200);
+  const published = await request("/api/notes/first-tutorial/", "PUT", {
+    title: "我的第一篇教程", category: "tutorial", status: "published", content: "## 起步\n\n短教程。\n\n```js\n<script>alert(1)</script>\n```",
+  }, token);
+  assert.equal(published.status, 200);
+  const page = await (await request("/ziliudi/first-tutorial/")).text();
+  assert.match(page, /<h3>起步<\/h3>/);
+  assert.match(page, /&lt;script&gt;alert\(1\)&lt;\/script&gt;/);
+  assert.doesNotMatch(page, /<script>alert\(1\)<\/script>/);
+  assert.match(await (await request("/ziliudi/?category=tutorial")).text(), /我的第一篇教程/);
+  assert.doesNotMatch(await (await request("/ziliudi/?category=essay")).text(), /我的第一篇教程/);
+  assert.match(await (await request("/admin/", "GET", undefined, token)).text(), /自留地 · 个人内容/);
+  assert.equal((await request("/api/notes/first-tutorial/", "PUT", { title: "无权限", content: "x" }, memberToken)).status, 403);
+  assert.equal((await request("/api/notes/first-tutorial/", "PUT", { title: "我的第一篇教程", category: "tutorial", status: "archived", content: "归档" }, token)).status, 200);
+  assert.equal((await request("/ziliudi/first-tutorial/")).status, 404);
 });
 await test("editing an article preserves omitted image and AI attribution", async () => {
   sqlite.exec(
