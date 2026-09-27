@@ -52,9 +52,12 @@ export function verifiedVillage(v:Row):Row {
     : f.page?.startsWith('《滨州市地名志》')
       ? f.page+'，按原页逐字核对。'
     : '《滨州市地名志》用户提供本，'+(f.page||'PDF第11页／书内第183页')+'，已目视核对。';
+  const webCross = ['柳家','姚家','东寨子','八里王'].includes(f.name)
+    ? ' 网络旁证：《滨州市小康村志》目录将该村列入滨城镇单元（山东地情档案，1998年版）。'
+    : '';
   return {...v, population:f.population||'',farmland:f.farmland||'',location:f.location||'',history:f.history||'',surnames:f.surnames||'',
     evolution:f.evolution||'历史行政隶属按原书保留，现行社区与行政村对应关系待核实。',
-    source_file:sourceNote,
+    source_file:sourceNote+webCross,
     remark:f.name==='肖韩'
       ? '原汇编人口、耕地与原页冲突，本页采用已核原文；旧值保留在原始档案。滨城年鉴与滨州地区志仅作行政归属和村名旁证，不替代地名志人口、耕地原页。编志时数据不是2026年现状。'
       : f.name==='孙家'

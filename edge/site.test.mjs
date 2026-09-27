@@ -100,6 +100,7 @@ await test('gazetteer stays primary and suspect values are quarantined only on e
   assert.match(primary.village.population,/156人/);
   assert.match(primary.village.farmland,/205亩/);
   assert.match(primary.village.sourceFile,/184页/);
+  assert.match(primary.village.sourceFile,/小康村志/);
   const page=await (await request('/place/99005/')).text();
   assert.match(page,/其他文献记载/);
   assert.match(page,/161人/);
