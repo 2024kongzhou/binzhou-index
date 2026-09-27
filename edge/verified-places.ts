@@ -49,8 +49,10 @@ export function verifiedVillage(v:Row):Row {
   if(!f) return pending;
   const sourceNote = f.name==='肖韩'
     ? '《滨州市地名志》用户提供本，'+(f.page||'PDF第11页／书内第183页')+'，已目视核对；交叉旁证：《滨城年鉴1998·行政区划》、 《滨州地区志1840—1985·革命烈士表》。'
+    : f.page?.startsWith('《滨州市地名志》')
+      ? f.page+'，按原页逐字核对。'
     : '《滨州市地名志》用户提供本，'+(f.page||'PDF第11页／书内第183页')+'，已目视核对。';
-  return {...v, population:f.population,farmland:f.farmland,location:f.location,history:f.history,surnames:f.surnames,
+  return {...v, population:f.population||'',farmland:f.farmland||'',location:f.location||'',history:f.history||'',surnames:f.surnames||'',
     evolution:f.evolution||'历史行政隶属按原书保留，现行社区与行政村对应关系待核实。',
     source_file:sourceNote,
     remark:f.name==='肖韩'
