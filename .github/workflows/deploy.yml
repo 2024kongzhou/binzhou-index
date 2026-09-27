@@ -38,6 +38,13 @@ jobs:
           CF_CURRENT_ACCOUNT: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           CF_LEGACY_TOKEN: ${{ secrets.CLOUDFLAREAPITOKEN }}
           CF_LEGACY_ACCOUNT: ${{ secrets.CLOUDFLAREACCOUNTID }}
+      - name: Apply D1 migrations
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ env.CF_DEPLOY_TOKEN }}
+          accountId: ${{ env.CF_DEPLOY_ACCOUNT }}
+          wranglerVersion: '4.141.0'
+          command: d1 migrations apply binzhou-db --remote
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/wrangler-action@v3
         with:
