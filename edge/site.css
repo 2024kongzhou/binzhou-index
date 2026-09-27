@@ -2585,6 +2585,10 @@ button svg {
 .note-card-body .text-link { align-self: end; margin-top: 6px; }
 .note-lead { font-size: 18px; line-height: 1.8; color: var(--muted); border-left: 3px solid #79a59b; padding-left: 18px; }
 .note-prose { overflow-wrap: anywhere; }
+.note-prose h2, .note-prose h3, .note-prose h4 { margin: 32px 0 12px; line-height: 1.4; color: var(--forest); }
+.note-prose h3 { font-size: 22px; }
+.note-prose h4 { font-size: 19px; }
+.note-prose ul, .note-prose ol { padding-left: 1.6em; line-height: 1.85; }
 .note-prose pre { background: #18332f; color: #eef5ef; padding: 18px; border-radius: 10px; overflow-x: auto; font-size: 14px; }
 .note-prose :not(pre) > code { background: #edf2ed; padding: 2px 5px; border-radius: 4px; }
 .note-prose blockquote { border-left: 3px solid #79a59b; padding-left: 16px; color: var(--muted); }

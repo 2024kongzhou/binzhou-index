@@ -4,6 +4,7 @@ import worker from "../dist/_worker.js";
 import { fixture } from "./test-support.mjs";
 import { SignJWT } from "jose";
 import bcrypt from "bcryptjs";
+import { readFileSync } from "node:fs";
 const { env, sqlite } = fixture();
 const request = (path, method = "GET", data, token, extra = {}) =>
   worker.fetch(
@@ -55,9 +56,13 @@ await test("placeholder posts are excluded from all public article surfaces", as
   assert.equal((await request('/api/posts?slug=test-placeholder')).status,404);
   assert.equal((await request('/blog/test-placeholder/')).status,404);
   assert.doesNotMatch(await (await request('/blog/')).text(),/test-placeholder/);
-  sqlite.prepare("INSERT INTO posts(title,slug,content,status,cover_image) VALUES('带来源参数的文章','query-source-link',?,'published','/api/img/sample.jpg')").run('滨州来源：https://example.test/detail?id=123。'.repeat(60));
+  sqlite.prepare("INSERT INTO posts(title,slug,content,status,cover_image) VALUES('带来源参数的文章','query-source-link',?,'published','/api/img/sample.jpg')").run('### 来源说明\n\n' + '滨州来源：https://example.test/detail?id=123。'.repeat(60));
+  sqlite.exec("UPDATE posts SET created_at=unixepoch()-2*86400,published_at=unixepoch()-2*86400 WHERE slug='query-source-link'");
   assert.equal((await request('/api/posts?slug=query-source-link')).status,200);
   assert.equal((await request('/blog/query-source-link/')).status,200);
+  const sourcePage = await (await request('/blog/query-source-link/')).text();
+  assert.match(sourcePage, /<h4>来源说明<\/h4>/);
+  assert.match(sourcePage, /href="https:\/\/example\.test\/detail\?id=123"/);
 });
 await test('verified historical records replace conflicting summaries in both API and page', async () => {
   sqlite.prepare("INSERT INTO villages(id,name,district,township,population,farmland,status) VALUES(99003,'北关','滨城区','滨城镇','43664','55993亩','published'),(99004,'北关','惠民县','惠民镇','12','10亩','published')").run();
@@ -179,6 +184,7 @@ await test("new article renders immediately; HTML content is escaped", async () 
   assert.ok(!html.includes("<img src=x"));
   assert.ok(html.includes("&lt;img"));
   assert.equal((await request("/api/posts", "POST", {title:"<img src=x onerror=alert(1)>",slug:"duplicate-title",content:"another"+"滨州".repeat(800),coverImage:"/api/img/sample.jpg",status:"published"}, token)).status, 409);
+  sqlite.exec("UPDATE posts SET published_at=unixepoch()-86400,created_at=unixepoch()-86400 WHERE slug='new-article'");
 });
 await test("article detail shows previous and next navigation", async () => {
   const page = await (await request('/blog/public-story/')).text();
@@ -196,6 +202,7 @@ await test("published articles require 1500-3000 characters and a cover image", 
   assert.equal(noCover.status,400);
   const good = await request("/api/posts", "POST", {title:"每日合规文章",slug:"daily-valid",content:long,status:"published",coverImage:"/api/img/sample.jpg"}, token);
   assert.equal(good.status,200);
+  assert.equal((await request("/api/posts", "POST", {title:"今日另一篇",slug:"daily-second",content:long,status:"published",coverImage:"/api/img/sample.jpg"}, token)).status,409);
   const shortRegular = await request("/api/posts", "POST", {title:"普通短文",slug:"regular-short",content:"滨州".repeat(400),status:"published",coverImage:"/api/img/sample.jpg"}, token);
   assert.equal(shortRegular.status,400);
 });
@@ -407,4 +414,19 @@ await test("booking validation and pending comments persist correct state", asyn
     sqlite.prepare("SELECT status FROM bookings").get().status,
     "pending",
   );
+});
+
+await test("publication cleanup hides OCR towns, demo merchandise and invalid duplicate stories without deleting rows", async () => {
+  sqlite.exec("INSERT INTO villages(id,name,district,township,status) VALUES(6283,'小营镇','沾化区','河贵乡','published')");
+  sqlite.exec("INSERT INTO products(id,name,images,status,store_phone) VALUES(22,'演示商品',NULL,'active','0543-1234567')");
+  const body = "滨州".repeat(800);
+  sqlite.prepare("INSERT INTO posts(id,title,slug,content,status,cover_image) VALUES(1000,'重复题材','old-copy',?,'published','/api/img/sample.jpg'),(1001,'重复题材','new-copy',?,'published','/api/img/sample.jpg'),(1002,'无封面','no-cover',?,'published','')").run(body, body, body);
+  sqlite.exec(readFileSync(new URL("../drizzle/migrations/0003_quarantine_public_placeholders.sql", import.meta.url), "utf8"));
+  assert.equal(sqlite.prepare("SELECT status FROM villages WHERE id=6283").get().status, "draft");
+  assert.equal(sqlite.prepare("SELECT status FROM products WHERE id=22").get().status, "draft");
+  assert.equal(sqlite.prepare("SELECT status FROM posts WHERE id=1000").get().status, "archived");
+  assert.equal(sqlite.prepare("SELECT status FROM posts WHERE id=1001").get().status, "published");
+  assert.equal(sqlite.prepare("SELECT status FROM posts WHERE id=1002").get().status, "archived");
+  assert.equal((await request("/place/6283/")).status, 404);
+  assert.equal((await request("/product/22/")).status, 404);
 });

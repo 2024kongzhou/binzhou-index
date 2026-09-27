@@ -1,5 +1,5 @@
 import { db } from "./index";
-import { users, posts, products, chronicles } from "./schema";
+import { users, posts, chronicles } from "./schema";
 import { hashPassword } from "@/lib/auth";
 import { eq } from "drizzle-orm";
 
@@ -8,15 +8,16 @@ async function seed() {
 
   // Create admin if not exists
   const adminExists = db.select().from(users).where(eq(users.email, "admin@keyi.de5.net")).get();
-  if (!adminExists) {
-    const hash = await hashPassword("admin123");
+  const bootstrapPassword = process.env.SEED_ADMIN_PASSWORD;
+  if (!adminExists && bootstrapPassword) {
+    const hash = await hashPassword(bootstrapPassword);
     db.insert(users).values({
       username: "admin",
       email: "admin@keyi.de5.net",
       passwordHash: hash,
       role: "admin",
     }).run();
-    console.log("Admin created: admin@keyi.de5.net / admin123");
+    console.log("Admin created from SEED_ADMIN_PASSWORD");
   }
 
   // Seed chronicles
@@ -69,60 +70,7 @@ async function seed() {
     console.log("Seeded 6 chronicles");
   }
 
-  // Seed products
-  const existingProducts = db.select().from(products).all();
-  if (existingProducts.length === 0) {
-    db.insert(products).values([
-      {
-        name: "精品窗帘定制",
-        description: "高端面料，多种款式可选，免费上门测量安装",
-        price: 128,
-        originalPrice: 198,
-        stock: 999,
-        status: "active",
-        storeName: "滨州窗帘布艺",
-        storeAddress: "滨城区黄河五路388号",
-        storePhone: "0543-1234567",
-        isSoftAd: true,
-      },
-      {
-        name: "环保无缝墙布",
-        description: "进口环保材料，无缝拼接，十年质保",
-        price: 68,
-        originalPrice: 98,
-        stock: 500,
-        status: "active",
-        storeName: "滨州墙布艺术",
-        storeAddress: "滨城区渤海七路256号",
-        storePhone: "0543-7654321",
-        isSoftAd: true,
-      },
-      {
-        name: "滨州冬枣",
-        description: "沾化冬枣，皮薄肉脆，甜度高，国家地理标志产品",
-        price: 38,
-        originalPrice: 58,
-        stock: 200,
-        status: "active",
-        storeName: "沾化冬枣直销",
-        storeAddress: "沾化区下洼镇",
-        storePhone: "0543-8888888",
-        isSoftAd: false,
-      },
-      {
-        name: "手工老粗布",
-        description: "传统手工纺织，纯棉材质，滨州非物质文化遗产",
-        price: 158,
-        stock: 50,
-        status: "active",
-        storeName: "博兴老粗布",
-        storeAddress: "博兴县城东街道",
-        storePhone: "0543-6666666",
-        isSoftAd: false,
-      },
-    ]).run();
-    console.log("Seeded 4 products");
-  }
+  // Publish products only after their seller, contact details and photos are verified.
 
   // Seed posts
   const existingPosts = db.select().from(posts).all();

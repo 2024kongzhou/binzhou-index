@@ -13,6 +13,8 @@ function inline(raw: string): string {
   let text = raw.replace(/`([^`\n]+)`/g, (_, code: string) => save(`<code>${esc(code)}</code>`));
   text = text.replace(/\[([^\]\n]+)\]\(([^)\s]+)\)/g, (whole, label: string, href: string) =>
     safeLink(href) ? save(`<a href="${esc(href)}" rel="noopener noreferrer">${esc(label)}</a>`) : whole);
+  text = text.replace(/https:\/\/[^\s<>"'，。；）)]+/g, (url: string) =>
+    save(`<a href="${esc(url)}" rel="noopener noreferrer">${esc(url)}</a>`));
   text = esc(text).replace(/\*\*([^*\n]+)\*\*/g, "<strong>$1</strong>");
   return text.replace(/\u0001(\d+)\u0002/g, (_, index: string) => tokens[Number(index)]);
 }

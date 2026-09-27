@@ -11,7 +11,7 @@ export function fixture() {
  INSERT INTO villages(name,district,township,history) VALUES('黄河村','滨城区','滨北街道','一份村庄历史。');
  INSERT INTO posts(title,slug,content,status) VALUES('公开故事','public-story','正文内容','published'),('保密草稿','private-draft','不能公开','draft');
  INSERT INTO products(name,price,description) VALUES('本地好物',99,'日常生活');`);
-  sqlite.prepare("UPDATE posts SET content=?,cover_image='/api/img/sample.jpg' WHERE slug='public-story'").run('滨州'.repeat(800));
+  sqlite.prepare("UPDATE posts SET content=?,cover_image='/api/img/sample.jpg',created_at=unixepoch()-86400,published_at=unixepoch()-86400 WHERE slug='public-story'").run('滨州'.repeat(800));
   const wrap = (sql, args = []) => ({
     bind(...values) {
       return wrap(sql, values);
