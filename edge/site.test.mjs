@@ -238,6 +238,37 @@ await test("admin pages and catalog writes use the existing schema", async () =>
   );
   assert.equal((await request("/chronicles/")).status, 200);
 });
+await test("admin can provision, update and disable management accounts safely", async () => {
+  assert.equal((await request("/api/admin/users", "POST", {
+    username: "staff-admin", email: "staff@example.test", password: "long-secure-password", role: "admin",
+  }, token)).status, 201);
+  const staff = sqlite.prepare("SELECT id,password_hash FROM users WHERE username='staff-admin'").get();
+  assert.ok(staff.password_hash !== "long-secure-password");
+  assert.equal((await request(`/api/admin/users/${staff.id}`, "PUT", {
+    role: "user", isActive: "false", password: "another-secure-password",
+  }, token)).status, 200);
+  assert.equal(sqlite.prepare("SELECT role,is_active FROM users WHERE id=?").get(staff.id).is_active, 0);
+  assert.equal((await request("/api/admin/users", "POST", {
+    username: "unauthorized", email: "other@example.test", password: "long-secure-password", role: "admin",
+  }, await new SignJWT({ userId: 2 }).setProtectedHeader({ alg: "HS256" }).setExpirationTime("1h").sign(new TextEncoder().encode(env.JWT_SECRET)))).status, 403);
+  assert.equal((await request("/api/admin/users/1", "PUT", { role: "user" }, token)).status, 400);
+  sqlite.prepare("UPDATE users SET role='admin',is_active=1 WHERE id=?").run(staff.id);
+  assert.equal((await request(`/api/admin/users/${staff.id}`, "PUT", { role: "user", isActive: "false" }, token)).status, 200);
+});
+await test("admin can edit existing village, chronicle and product records", async () => {
+  const r = await request("/api/admin/records/villages/1", "PUT", {
+    population: "约 120 户（档案记载）", surnames: "张、李", status: "published",
+  }, token);
+  assert.equal(r.status, 200);
+  const village = sqlite.prepare("SELECT population,surnames,status FROM villages WHERE id=1").get();
+  assert.equal(village.population, "约 120 户（档案记载）");
+  assert.equal(village.surnames, "张、李");
+  assert.equal(village.status, "published");
+  assert.equal((await request("/api/admin/records/villages/1", "PUT", { status: "deleted" }, token)).status, 400);
+  assert.equal((await request("/api/admin/records/products/1", "PUT", { price: "-5" }, token)).status, 400);
+  const memberToken = await new SignJWT({ userId: 2 }).setProtectedHeader({ alg: "HS256" }).setExpirationTime("1h").sign(new TextEncoder().encode(env.JWT_SECRET));
+  assert.equal((await request("/api/admin/records/villages/1", "PUT", { history: "unauthorized" }, memberToken)).status, 403);
+});
 await test("editing an article preserves omitted image and AI attribution", async () => {
   sqlite.exec(
     "UPDATE posts SET cover_image='/api/img/sample.jpg',ai_generated=1 WHERE slug='new-article'",
