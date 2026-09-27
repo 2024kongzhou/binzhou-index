@@ -180,6 +180,9 @@ await test("article detail shows previous and next navigation", async () => {
   const page = await (await request('/blog/public-story/')).text();
   assert.match(page,/文章导航/);
   assert.match(page,/上一篇|下一篇/);
+  assert.match(page,/site\.css\?v=20260927/);
+  const css = await (await request('/assets/site.css')).text();
+  assert.match(css,/\.article-nav\s*\{[^}]*gap:\s*88px/s);
 });
 await test("daily articles require 600-1000 characters and a cover image", async () => {
   const short = await request("/api/posts", "POST", {title:"每日短文",slug:"daily-short",content:"太短",status:"published",coverImage:"/api/img/sample.jpg"}, token);

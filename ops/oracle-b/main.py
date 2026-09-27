@@ -625,7 +625,7 @@ async def lifespan(app: FastAPI):
 
     scheduler.add_job(security_monitor, IntervalTrigger(hours=2),
                       id="security", name="安全监控", max_instances=1, coalesce=True)
-    scheduler.add_job(daily_article, CronTrigger(hour=0, minute=30, timezone=BEIJING),
+    scheduler.add_job(daily_article, CronTrigger(hour=7, minute=0, timezone=BEIJING),
                       id="daily_article", name="每日文章", max_instances=1, coalesce=True)
     scheduler.add_job(daily_report, CronTrigger(hour=0, minute=0, timezone=timezone.utc),
                       id="daily", name="每日报告", max_instances=1, coalesce=True)
