@@ -446,6 +446,11 @@ export async function api(
       throw new HttpError(400, "发布文章必须提供与滨州内容相关且来源可追溯的封面图");
     if (req.method === "POST" && status === "published" && await one(db, "SELECT id FROM posts WHERE title=? AND status='published'", title))
       throw new HttpError(409, "已有同标题文章，请更换主题或编辑原文");
+    if (status === "published" && slug.startsWith("daily-")) {
+      const plainLength = content.replace(/<[^>]*>/g, "").trim().length;
+      if (plainLength < 600 || plainLength > 1000) throw new HttpError(400, "每日文章正文须为600至1000字");
+      if (!cover) throw new HttpError(400, "每日文章必须提供至少一张封面图");
+    }
     let p: Row | null;
     if (req.method === "PUT")
       p = await db

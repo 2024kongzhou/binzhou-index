@@ -176,6 +176,15 @@ await test("new article renders immediately; HTML content is escaped", async () 
   assert.ok(html.includes("&lt;img"));
   assert.equal((await request("/api/posts", "POST", {title:"<img src=x onerror=alert(1)>",slug:"duplicate-title",content:"another",coverImage:"/api/img/sample.jpg",status:"published"}, token)).status, 409);
 });
+await test("daily articles require 600-1000 characters and a cover image", async () => {
+  const short = await request("/api/posts", "POST", {title:"每日短文",slug:"daily-short",content:"太短",status:"published",coverImage:"/api/img/sample.jpg"}, token);
+  assert.equal(short.status,400);
+  const long = "滨州".repeat(350);
+  const noCover = await request("/api/posts", "POST", {title:"每日无图",slug:"daily-no-cover",content:long,status:"published"}, token);
+  assert.equal(noCover.status,400);
+  const good = await request("/api/posts", "POST", {title:"每日合规文章",slug:"daily-valid",content:long,status:"published",coverImage:"/api/img/sample.jpg"}, token);
+  assert.equal(good.status,200);
+});
 await test("login preserves password whitespace and cookie is protected", async () => {
   const r = await request("/api/auth/login", "POST", {
     account: "admin@example.test",
