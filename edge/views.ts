@@ -233,7 +233,7 @@ export async function page(req: Request, env: Env, user: User | null) {
         )
         .join(
           "",
-        )}${villageSupplement(v)}<aside class="source-note">资料依据：${esc(v.source_file || "地方志与历史资料")}。历史记载可能与现状不同，如有补充或纠错，欢迎<a href="/contact/">联系我们</a>。</aside></article>`,
+        )}${villageSupplement(v)}<aside class="source-note">资料依据：${esc(v.source_file || "地方志与历史资料")}。本站资料按来源整理，历史记载不等同于现状；网络资料仅作交叉参考，涉及人口、行政区划、产权或公共事务，请以主管部门和原始出版物最新版本为准。如有补充或纠错，欢迎<a href="/contact/">联系我们</a>。</aside></article>`,
       cleanText(v.history || v.evolution).slice(0, 150),
     );
   }

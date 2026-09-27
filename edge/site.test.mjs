@@ -93,6 +93,7 @@ await test('滨城镇 page records use the same field-by-field gazetteer standar
   assert.match(z.village.population,/74户、289人/); assert.match(z.village.farmland,/397亩/); assert.match(z.village.sourceFile,/第207页/);
   const l=await (await request('/api/villages?id=99012')).json();
   assert.match(l.village.population,/88户、298人/); assert.match(l.village.surnames,/刘、王、罗/); assert.match(l.village.sourceFile,/第219页/);
+  assert.match(await (await request('/place/99012/')).text(),/网络资料仅作交叉参考/);
 });
 await test('gazetteer stays primary and suspect values are quarantined only on exact matches', async () => {
   sqlite.prepare("INSERT INTO villages(id,name,district,township,population,farmland,status) VALUES(99005,'柳家','滨城区','滨城镇','43664','55993亩','published'),(99006,'东关','滨城区','滨城镇','43664','55993亩','published'),(99007,'东关','滨城区','滨城镇','123','456亩','published')").run();
