@@ -25,6 +25,8 @@ export function verifiedVillage(v:Row):Row {
     return {...pending,
       population:batch.population||pending.population,
       farmland:batch.farmland||pending.farmland,
+      history:'原页证据摘录：'+batch.evidence,
+      evolution:'PDF原页已按村名＋乡镇上下文匹配；历史行政隶属、曾用名、姓氏与迁徙需继续逐字段复核。',
       source_file:batch.source,
       version_tag:'《滨州市地名志》批量匹配 · 待原页复核',
       remark:'本条已按村名＋乡镇上下文批量匹配 PDF 候选条目；候选字段已上线，原页 OCR 和同名身份仍需逐条复核。证据页：PDF第'+batch.page+'页。'};
