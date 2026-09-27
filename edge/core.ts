@@ -578,7 +578,7 @@ export async function api(
     const b = await body(req),
       v = await db
         .prepare(
-          "INSERT INTO villages(name,district,township,history,source_file,status,created_at) VALUES(?,?,?,?,?,'published',unixepoch()) RETURNING *",
+          "INSERT INTO villages(name,district,township,history,source_file,status,created_at) VALUES(?,?,?,?,?,'draft',unixepoch()) RETURNING *",
         )
         .bind(
           field(b, "name", 120, true),

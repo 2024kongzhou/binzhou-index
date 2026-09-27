@@ -453,3 +453,30 @@ await test("OCR name labels are retained as drafts, not public village pages", a
   assert.equal(sqlite.prepare("SELECT status FROM villages WHERE id=99103").get().status, "draft");
   assert.equal((await request("/place/99103/")).status, 404);
 });
+
+await test("homepage features original-page-checked villages instead of the latest unverified import", async () => {
+  sqlite.exec("INSERT INTO villages(id,name,district,township,status) VALUES(99104,'肖韩','滨城区','滨城镇','published'),(99105,'新导入未核村','无棣县','某乡','published')");
+  const home = await (await request("/")).text();
+  assert.match(home, /已对照《滨州市地名志》原页/);
+  assert.match(home, /href="\/place\/99104\/"/);
+  assert.doesNotMatch(home, /href="\/place\/99105\/"/);
+});
+
+const freshAdminToken = await new SignJWT({ userId: 1 })
+  .setProtectedHeader({ alg: "HS256" })
+  .setJti("editor-followup-tests")
+  .setExpirationTime("1h")
+  .sign(new TextEncoder().encode(env.JWT_SECRET));
+
+await test("new village records stay private until an editor publishes them", async () => {
+  const response = await request("/api/villages", "POST", { name: "待核村", district: "滨城区" }, freshAdminToken);
+  assert.equal(response.status, 200);
+  const { village } = await response.json();
+  assert.equal(sqlite.prepare("SELECT status FROM villages WHERE id=?").get(village.id).status, "draft");
+  assert.equal((await request(`/place/${village.id}/`)).status, 404);
+});
+
+await test("personal garden offers its editor a direct writing shortcut", async () => {
+  assert.match(await (await request("/ziliudi/", "GET", undefined, freshAdminToken)).text(), /写一篇新内容/);
+  assert.doesNotMatch(await (await request("/ziliudi/")).text(), /写一篇新内容/);
+});
