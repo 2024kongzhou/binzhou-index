@@ -71,6 +71,12 @@ await test('肖韩 exposes complete gazetteer figures and corroborating local so
   assert.match(page,/547人/);
   assert.match(page,/滨城年鉴1998/);
 });
+await test('template village narratives are isolated until an original source is found', async () => {
+  sqlite.prepare("INSERT INTO villages(id,name,district,township,history,status) VALUES(99009,'模板村','滨城区','滨城镇','带来了先进的农耕技术和手工艺，使村庄逐渐繁荣。','published')").run();
+  const data=await (await request('/api/villages?id=99009')).json();
+  assert.match(data.village.history,/模板化沿革/);
+  assert.doesNotMatch(data.village.history,/先进的农耕技术/);
+});
 await test('gazetteer stays primary and suspect values are quarantined only on exact matches', async () => {
   sqlite.prepare("INSERT INTO villages(id,name,district,township,population,farmland,status) VALUES(99005,'柳家','滨城区','滨城镇','43664','55993亩','published'),(99006,'东关','滨城区','滨城镇','43664','55993亩','published'),(99007,'东关','滨城区','滨城镇','123','456亩','published')").run();
   const primary=await (await request('/api/villages?id=99005')).json();

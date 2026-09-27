@@ -20,6 +20,12 @@ export function verifiedVillage(v:Row):Row {
     if(suspect[field]&&String(v[field])===suspect[field])
       (pending as Row)[field]='待原页核验（旧汇编疑似重复错填或无依据推断，已隔离）';
   }
+  // Older imports contained a small set of generic, non-source-backed narratives.
+  // Keep the record visible, but never present those narratives as village history.
+  if (typeof pending.history==='string' && /(带来了先进的农耕技术和手工艺|使村庄逐渐繁荣|吸引了更多外姓人家迁入)/.test(pending.history)) {
+    pending.history='待原页核验（旧汇编含模板化沿革，已隔离；请以《滨州市地名志》原页或地方志互证）';
+    pending.version_tag='旧汇编 · 模板沿革已隔离';
+  }
   const batch=gazetteerBatch[String(v.id)];
   if(batch && !verifiedPlaces.some(f=>f.name===String(v.name).replace(/村$/,''))) {
     return {...pending,
