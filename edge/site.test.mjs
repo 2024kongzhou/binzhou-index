@@ -87,6 +87,13 @@ await test('孙家 preserves the page evidence even when the gazetteer records a
   assert.match(data.village.versionTag,/逐字核对/);
   assert.match(data.village.remark,/逐字核对录入/);
 });
+await test('滨城镇 page records use the same field-by-field gazetteer standard', async () => {
+  sqlite.prepare("INSERT INTO villages(id,name,district,township,status) VALUES(99011,'张家庵','滨城区','滨城镇','published'),(99012,'刘芳策','滨城区','滨城镇','published')").run();
+  const z=await (await request('/api/villages?id=99011')).json();
+  assert.match(z.village.population,/74户、289人/); assert.match(z.village.farmland,/397亩/); assert.match(z.village.sourceFile,/第207页/);
+  const l=await (await request('/api/villages?id=99012')).json();
+  assert.match(l.village.population,/88户、298人/); assert.match(l.village.surnames,/刘、王、罗/); assert.match(l.village.sourceFile,/第219页/);
+});
 await test('gazetteer stays primary and suspect values are quarantined only on exact matches', async () => {
   sqlite.prepare("INSERT INTO villages(id,name,district,township,population,farmland,status) VALUES(99005,'柳家','滨城区','滨城镇','43664','55993亩','published'),(99006,'东关','滨城区','滨城镇','43664','55993亩','published'),(99007,'东关','滨城区','滨城镇','123','456亩','published')").run();
   const primary=await (await request('/api/villages?id=99005')).json();
