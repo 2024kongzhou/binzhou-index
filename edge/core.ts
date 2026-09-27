@@ -379,14 +379,15 @@ export async function api(
     if (q.get("slug")) {
       const p = await one(
         db,
-        "SELECT * FROM posts WHERE slug=? AND title NOT LIKE '%??%' AND content NOT LIKE '%??%' AND length(content) BETWEEN 1500 AND 3000 AND cover_image<>'' AND (status='published' OR ?=1)",
+        "SELECT * FROM posts WHERE slug=? AND ((status='published' AND title NOT LIKE '%??%' AND content NOT LIKE '%??%' AND length(content) BETWEEN 1500 AND 3000 AND cover_image<>'') OR ?=1)",
         q.get("slug")!,
         user?.role === "admin" ? 1 : 0,
       );
       return json({ post: p ? camel(p) : null }, p ? 200 : 404);
     }
-    const where = ["status=?", "title NOT LIKE '%??%'", "content NOT LIKE '%??%'", "length(content) BETWEEN 1500 AND 3000", "cover_image<>''"],
+    const where = ["status=?"],
       args: (string | number)[] = [requested];
+    if (requested === "published") where.push("title NOT LIKE '%??%'", "content NOT LIKE '%??%'", "length(content) BETWEEN 1500 AND 3000", "cover_image<>''");
     if (q.get("search")) {
       where.push("title LIKE ?");
       args.push("%" + q.get("search")!.slice(0, 80) + "%");
@@ -439,7 +440,7 @@ export async function api(
       req.method === "PUT"
         ? await one(
             db,
-            "SELECT cover_image,ai_generated FROM posts WHERE slug=?",
+            "SELECT cover_image,ai_generated,status,published_at FROM posts WHERE slug=?",
             slug,
           )
         : null;
@@ -469,22 +470,26 @@ export async function api(
     }
     if (req.method === "POST" && status === "published" && await one(db, "SELECT id FROM posts WHERE title=? AND status='published'", title))
       throw new HttpError(409, "已有同标题文章，请更换主题或编辑原文");
+    if (status === "published" && (req.method === "POST" || previous?.status !== "published")) {
+      const today = await one(db, "SELECT id FROM posts WHERE status='published' AND title NOT LIKE '%??%' AND content NOT LIKE '%??%' AND length(content) BETWEEN 1500 AND 3000 AND cover_image<>'' AND date(coalesce(published_at,created_at),'unixepoch','+8 hours')=date('now','+8 hours') LIMIT 1");
+      if (today) throw new HttpError(409, "北京时间今天已有公开文章，请保存草稿并在其他日期发布");
+    }
     let p: Row | null;
     if (req.method === "PUT")
       p = await db
         .prepare(
-          "UPDATE posts SET title=?,content=?,excerpt=?,status=?,cover_image=?,ai_generated=? WHERE slug=? RETURNING *",
+          "UPDATE posts SET title=?,content=?,excerpt=?,published_at=CASE WHEN ?='published' AND status<>'published' THEN unixepoch() ELSE published_at END,status=?,cover_image=?,ai_generated=? WHERE slug=? RETURNING *",
         )
-        .bind(title, content, excerpt, status, cover, ai, slug)
+        .bind(title, content, excerpt, status, status, cover, ai, slug)
         .first<Row>();
     else {
       if (await one(db, "SELECT id FROM posts WHERE slug=?", slug))
         throw new HttpError(409, "文章地址已存在，请编辑已有文章");
       p = await db
         .prepare(
-          "INSERT INTO posts(title,slug,content,excerpt,status,cover_image,author_id,ai_generated,created_at,published_at) VALUES(?,?,?,?,?,?,?,?,unixepoch(),unixepoch()) RETURNING *",
+          "INSERT INTO posts(title,slug,content,excerpt,status,cover_image,author_id,ai_generated,created_at,published_at) VALUES(?,?,?,?,?,?,?,?,unixepoch(),CASE WHEN ?='published' THEN unixepoch() ELSE NULL END) RETURNING *",
         )
-        .bind(title, slug, content, excerpt, status, cover, user.id, ai)
+        .bind(title, slug, content, excerpt, status, cover, user.id, ai, status)
         .first<Row>();
     }
     if (!p) throw new HttpError(404, "文章不存在");

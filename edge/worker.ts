@@ -52,7 +52,7 @@ export default {
           "text/plain",
         );
       else if (url.pathname === "/sitemap.xml") {
-        const [vs, ps] = await Promise.all([
+        const [vs, ps, notes, products] = await Promise.all([
           all(
             env.DB,
             "SELECT id FROM villages WHERE status='published' ORDER BY id LIMIT 40000",
@@ -61,16 +61,23 @@ export default {
             env.DB,
             "SELECT slug FROM posts WHERE status='published' ORDER BY id LIMIT 5000",
           ),
+          all(env.DB, "SELECT slug FROM personal_notes WHERE status='published' ORDER BY id LIMIT 5000"),
+          all(env.DB, "SELECT id FROM products WHERE status='active' AND section='goods' ORDER BY id LIMIT 5000"),
         ]);
         const paths = [
           "/",
           "/place/",
           "/blog/",
+          "/ziliudi/",
           "/product/",
+          "/chronicles/",
+          "/village-research/",
           "/about/",
           "/contact/",
           ...vs.map((v) => `/place/${v.id}/`),
           ...ps.map((p) => `/blog/${encodeURIComponent(String(p.slug))}/`),
+          ...notes.map((n) => `/ziliudi/${encodeURIComponent(String(n.slug))}/`),
+          ...products.map((p) => `/product/${p.id}/`),
         ];
         response = asset(
           '<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' +

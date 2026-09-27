@@ -1,6 +1,4 @@
--- Admin user (password: admin123, bcrypt hash)
-INSERT OR IGNORE INTO users (id, username, email, password_hash, role, is_active) VALUES
-(1, 'admin', 'admin@keyi.de5.net', '$2b$10$szWV1f6wcxLOXSY2PfKbaOPazLTmGHlGVFBhF8fYYMWVTLplL2ywC', 'admin', 1);
+-- Admin accounts are bootstrapped separately with a private password.
 
 -- Chronicles
 INSERT OR IGNORE INTO chronicles (title, content, category, era, tags) VALUES
@@ -11,12 +9,7 @@ INSERT OR IGNORE INTO chronicles (title, content, category, era, tags) VALUES
 ('滨州海盐文化', '滨州濒临渤海，拥有丰富的海盐资源。自春秋时期起，这里就是重要的海盐产区。无棣县的埕口盐场历史悠久，至今仍保留着传统晒盐工艺。海盐文化深深融入了当地人的生活和民俗之中。', '风俗', '春秋-现代', '海盐,制盐,民俗'),
 ('杜受田故居', '杜受田故居位于滨州市滨城区，是清代咸丰皇帝老师杜受田的故居。杜受田（1788-1852），字芝农，滨州人，道光年间进士，曾任协办大学士、礼部尚书等职。其故居现为山东省重点文物保护单位。', '人物', '清代', '杜受田,故居,文物');
 
--- Products
-INSERT OR IGNORE INTO products (name, description, price, original_price, stock, status, store_name, store_address, store_phone, is_soft_ad) VALUES
-('精品窗帘定制', '高端面料，多种款式可选，免费上门测量安装', 128, 198, 999, 'active', '滨州窗帘布艺', '滨城区黄河五路388号', '0543-1234567', 1),
-('环保无缝墙布', '进口环保材料，无缝拼接，十年质保', 68, 98, 500, 'active', '滨州墙布艺术', '滨城区渤海七路256号', '0543-7654321', 1),
-('滨州冬枣', '沾化冬枣，皮薄肉脆，甜度高，国家地理标志产品', 38, 58, 200, 'active', '沾化冬枣直销', '沾化区下洼镇', '0543-8888888', 0),
-('手工老粗布', '传统手工纺织，纯棉材质，滨州非物质文化遗产', 158, NULL, 50, 'active', '博兴老粗布', '博兴县城东街道', '0543-6666666', 0);
+-- Products are published from the admin panel after real seller and image review.
 
 -- Posts
 INSERT OR IGNORE INTO posts (title, slug, content, excerpt, status, ai_generated) VALUES

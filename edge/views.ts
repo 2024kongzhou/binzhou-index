@@ -71,7 +71,7 @@ function sectionHead(kicker: string, title: string, href?: string) {
   return `<div class="section-heading"><div><span class="eyebrow">${kicker}</span><h2>${title}</h2></div>${href ? link(href, "查看全部", "text-link") : ""}</div>`;
 }
 function postCard(p: Row, featured = false) {
-  return `<article class="story-card ${featured ? "featured" : ""}"><a href="/blog/${encodeURIComponent(String(p.slug))}/" class="card-image"><img src="${imageUrl(p.cover_image)}" alt="" loading="lazy" width="640" height="400"><span class="image-label">${p.ai_generated ? "AI 辅助创作" : "城市故事"}</span></a><div class="card-body"><span class="meta">${date(p.created_at)} <span>·</span> 滨州故事</span><h3><a href="/blog/${encodeURIComponent(String(p.slug))}/">${esc(p.title)}</a></h3><p>${esc(cleanText(p.excerpt || p.content).slice(0, 100))}</p><a class="text-link" href="/blog/${encodeURIComponent(String(p.slug))}/">阅读全文 ${icon("arrow", 16)}</a></div></article>`;
+  return `<article class="story-card ${featured ? "featured" : ""}"><a href="/blog/${encodeURIComponent(String(p.slug))}/" class="card-image"><img src="${imageUrl(p.cover_image)}" alt="" loading="lazy" width="640" height="400"><span class="image-label">${p.ai_generated ? "AI 辅助创作" : "城市故事"}</span></a><div class="card-body"><span class="meta">${date(p.published_at || p.created_at)} <span>·</span> 滨州故事</span><h3><a href="/blog/${encodeURIComponent(String(p.slug))}/">${esc(p.title)}</a></h3><p>${esc(cleanText(p.excerpt || p.content).slice(0, 100))}</p><a class="text-link" href="/blog/${encodeURIComponent(String(p.slug))}/">阅读全文 ${icon("arrow", 16)}</a></div></article>`;
 }
 const noteCategory = (value: unknown) => ({ essay: "随笔", tutorial: "教程", note: "笔记" } as Record<string, string>)[String(value)] || "笔记";
 function noteCard(note: Row) {
@@ -132,7 +132,7 @@ export function shell(
     )
     .join("");
   return new Response(
-    `<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#173f3b"><title>${esc(title)}${title === "滨州索引" ? "" : " · 滨州索引"}</title><meta name="description" content="${esc(description)}">${preview ? '<meta name="robots" content="noindex,nofollow">' : `<link rel="canonical" href="https://keyi.de5.net${esc(path)}">`}<link rel="icon" type="image/svg+xml" href="/assets/mark.svg"><link rel="stylesheet" href="/assets/site.css?v=20260927-personal"><script src="/assets/site.js?v=20260926" defer></script></head><body><a class="skip-link" href="#main">跳至主要内容</a>${preview ? '<div class="preview-banner">升级预览 · 仅供浏览，提交功能在正式站开放</div>' : ""}<header class="site-header"><div class="container header-inner"><a class="brand" href="/" aria-label="滨州索引首页"><span class="brand-mark">滨</span><span>滨州索引<small>BINZHOU INDEX</small></span></a><nav class="desktop-nav" aria-label="主要导航">${navigation}</nav><div class="header-actions"><a class="icon-button" href="/search/" aria-label="全站搜索">${icon("search")}</a>${user ? `<a class="account-link" href="${user.role === "admin" ? "/admin/" : "/messages/"}">${esc(user.username)}</a><button class="icon-button" data-logout aria-label="退出登录">退出</button>` : '<a class="account-link" href="/login/">登录 / 注册</a>'}<details class="mobile-menu"><summary aria-label="展开导航">${icon("menu")}</summary><nav aria-label="手机导航">${navigation}<a href="/about/">关于我们</a></nav></details></div></div></header><main id="main">${content}</main><footer class="site-footer"><div class="container footer-main"><div class="footer-brand"><a class="brand" href="/"><span class="brand-mark">滨</span><span>滨州索引<small>一座城，万千值得记录的日常。</small></span></a><p>记录乡土根脉，连接本地生活。<br>从黄河到渤海，让每一个故事都有回响。</p></div><div><h3>发现滨州</h3><a href="/place/">村庄名录</a><a href="/chronicles/">地方志</a><a href="/blog/">滨州故事</a><a href="/product/">本地好物</a><a href="/ziliudi/">自留地</a></div><div><h3>与我们联系</h3><a href="tel:13326280320">133 2628 0320</a><a href="mailto:admin@keyi.de5.net">admin@keyi.de5.net</a><span>山东省滨州市</span></div><div><h3>关于平台</h3><a href="/about/">关于我们</a><a href="/contact/">服务与预约</a><a href="/credentials/">资质说明</a></div></div><div class="container footer-bottom"><span>© ${new Date().getFullYear()} 滨州索引工作室</span><div><a href="/privacy/">隐私政策</a><a href="/terms/">用户协议</a><a href="#main">回到顶部 ↑</a></div></div></footer></body></html>`,
+    `<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#173f3b"><title>${esc(title)}${title === "滨州索引" ? "" : " · 滨州索引"}</title><meta name="description" content="${esc(description)}">${preview ? '<meta name="robots" content="noindex,nofollow">' : `<link rel="canonical" href="https://keyi.de5.net${esc(path)}">`}<link rel="icon" type="image/svg+xml" href="/assets/mark.svg"><link rel="stylesheet" href="/assets/site.css?v=20260927-audit"><script src="/assets/site.js?v=20260926" defer></script></head><body><a class="skip-link" href="#main">跳至主要内容</a>${preview ? '<div class="preview-banner">升级预览 · 仅供浏览，提交功能在正式站开放</div>' : ""}<header class="site-header"><div class="container header-inner"><a class="brand" href="/" aria-label="滨州索引首页"><span class="brand-mark">滨</span><span>滨州索引<small>BINZHOU INDEX</small></span></a><nav class="desktop-nav" aria-label="主要导航">${navigation}</nav><div class="header-actions"><a class="icon-button" href="/search/" aria-label="全站搜索">${icon("search")}</a>${user ? `<a class="account-link" href="${user.role === "admin" ? "/admin/" : "/messages/"}">${esc(user.username)}</a><button class="icon-button" data-logout aria-label="退出登录">退出</button>` : '<a class="account-link" href="/login/">登录 / 注册</a>'}<details class="mobile-menu"><summary aria-label="展开导航">${icon("menu")}</summary><nav aria-label="手机导航">${navigation}<a href="/about/">关于我们</a></nav></details></div></div></header><main id="main">${content}</main><footer class="site-footer"><div class="container footer-main"><div class="footer-brand"><a class="brand" href="/"><span class="brand-mark">滨</span><span>滨州索引<small>一座城，万千值得记录的日常。</small></span></a><p>记录乡土根脉，连接本地生活。<br>从黄河到渤海，让每一个故事都有回响。</p></div><div><h3>发现滨州</h3><a href="/place/">村庄名录</a><a href="/chronicles/">地方志</a><a href="/blog/">滨州故事</a><a href="/product/">本地好物</a><a href="/ziliudi/">自留地</a></div><div><h3>与我们联系</h3><a href="tel:13326280320">133 2628 0320</a><a href="mailto:admin@keyi.de5.net">admin@keyi.de5.net</a><span>山东省滨州市</span></div><div><h3>关于平台</h3><a href="/about/">关于我们</a><a href="/contact/">服务与预约</a><a href="/credentials/">资质说明</a></div></div><div class="container footer-bottom"><span>© ${new Date().getFullYear()} 滨州索引工作室</span><div><a href="/privacy/">隐私政策</a><a href="/terms/">用户协议</a><a href="#main">回到顶部 ↑</a></div></div></footer></body></html>`,
     {
       status,
       headers: {
@@ -166,7 +166,7 @@ export async function page(req: Request, env: Env, user: User | null) {
       ),
       all(
         db,
-        "SELECT * FROM posts WHERE status='published' AND title NOT LIKE '%??%' AND content NOT LIKE '%??%' AND length(content) BETWEEN 1500 AND 3000 AND cover_image<>'' AND id IN (SELECT MAX(id) FROM posts WHERE status='published' GROUP BY title) ORDER BY created_at DESC,id DESC LIMIT 3",
+        "SELECT * FROM posts WHERE status='published' AND title NOT LIKE '%??%' AND content NOT LIKE '%??%' AND length(content) BETWEEN 1500 AND 3000 AND cover_image<>'' AND id IN (SELECT MAX(id) FROM posts WHERE status='published' GROUP BY title) ORDER BY coalesce(published_at,created_at) DESC,id DESC LIMIT 3",
       ),
       all(
         db,
@@ -275,7 +275,7 @@ export async function page(req: Request, env: Env, user: User | null) {
       args = q ? ["%" + q + "%"] : [];
     const ps = await all(
         db,
-        `SELECT * FROM posts WHERE ${w} ORDER BY created_at DESC,id DESC LIMIT 12 OFFSET ?`,
+        `SELECT * FROM posts WHERE ${w} ORDER BY coalesce(published_at,created_at) DESC,id DESC LIMIT 12 OFFSET ?`,
         ...args,
         (n - 1) * 12,
       ),
@@ -293,28 +293,21 @@ export async function page(req: Request, env: Env, user: User | null) {
   if (match) {
     const p = await one(
       db,
-      "SELECT * FROM posts WHERE slug=? AND title NOT LIKE '%??%' AND content NOT LIKE '%??%' AND length(content) BETWEEN 1500 AND 3000 AND cover_image<>'' AND (status='published' OR ?=1)",
+      "SELECT * FROM posts WHERE slug=? AND ((status='published' AND title NOT LIKE '%??%' AND content NOT LIKE '%??%' AND length(content) BETWEEN 1500 AND 3000 AND cover_image<>'') OR ?=1)",
       decodeURIComponent(match[1]),
       user?.role === "admin" ? 1 : 0,
     );
     if (!p) throw new HttpError(404, "文章不存在或尚未发布");
     const postFilter = "status='published' AND title NOT LIKE '%??%' AND content NOT LIKE '%??%' AND length(content) BETWEEN 1500 AND 3000 AND cover_image<>''";
     const [previous, next, comments] = await Promise.all([
-      one(db, `SELECT slug,title FROM posts WHERE ${postFilter} AND (created_at>? OR (created_at=? AND id>?)) ORDER BY created_at ASC,id ASC LIMIT 1`, p.created_at, p.created_at, p.id),
-      one(db, `SELECT slug,title FROM posts WHERE ${postFilter} AND (created_at<? OR (created_at=? AND id<?)) ORDER BY created_at DESC,id DESC LIMIT 1`, p.created_at, p.created_at, p.id),
+      one(db, `SELECT slug,title FROM posts WHERE ${postFilter} AND (coalesce(published_at,created_at)>? OR (coalesce(published_at,created_at)=? AND id>?)) ORDER BY coalesce(published_at,created_at) ASC,id ASC LIMIT 1`, p.published_at || p.created_at, p.published_at || p.created_at, p.id),
+      one(db, `SELECT slug,title FROM posts WHERE ${postFilter} AND (coalesce(published_at,created_at)<? OR (coalesce(published_at,created_at)=? AND id<?)) ORDER BY coalesce(published_at,created_at) DESC,id DESC LIMIT 1`, p.published_at || p.created_at, p.published_at || p.created_at, p.id),
       all(db, "SELECT author_name,content,created_at FROM comments WHERE post_id=? AND status='approved' ORDER BY id DESC LIMIT 30", p.id),
     ]);
     const articleNav = `<nav class="article-nav" aria-label="文章导航">${previous ? `<a href="/blog/${encodeURIComponent(String(previous.slug))}/"><span>上一篇</span><strong>${esc(previous.title)}</strong></a>` : "<span></span>"}${next ? `<a href="/blog/${encodeURIComponent(String(next.slug))}/"><span>下一篇</span><strong>${esc(next.title)}</strong></a>` : "<span></span>"}</nav>`;
     return render(
       String(p.title),
-      `<article class="container reading"><a class="breadcrumb" href="/blog/">← 返回滨州故事</a><div class="article-heading">${badge(p.ai_generated ? "AI 辅助创作 · 请核实重要信息" : "滨州故事")}${p.status !== "published" ? badge("管理员预览 · 未公开") : ""}<h1>${esc(p.title)}</h1><p>${date(p.created_at)} · 约 ${Math.max(1, Math.ceil(cleanText(p.content).length / 500))} 分钟阅读</p></div>${p.cover_image ? `<img class="article-cover" src="${imageUrl(p.cover_image)}" alt="文章配图" width="1000" height="600">` : ""}<div class="prose">${cleanText(
-        p.content,
-      )
-        .split(/\n\s*\n/)
-        .map((t) => `<p>${esc(t)}</p>`)
-        .join(
-          "",
-        )}</div><aside class="source-note">内容仅供参考。涉及政策、价格、医疗等信息，请以相关机构最新公布内容为准。</aside>${articleNav}<section class="comments"><h2>留下你的想法</h2>${user ? `<form data-api="/api/comments" class="stack"><input type="hidden" name="postId" value="${p.id}">${textarea("content", "评论内容")}${feedback}<button class="button" type="submit">提交评论</button><small>评论审核通过后显示。</small></form>` : '<p><a href="/login/">登录</a>后参与讨论。</p>'}${comments.map((c) => `<div class="comment"><strong>${esc(c.author_name)}</strong><time>${date(c.created_at)}</time><p>${esc(c.content)}</p></div>`).join("")}</section></article>`,
+      `<article class="container reading"><a class="breadcrumb" href="/blog/">← 返回滨州故事</a><div class="article-heading">${badge(p.ai_generated ? "AI 辅助创作 · 请核实重要信息" : "滨州故事")}${p.status !== "published" ? badge("管理员预览 · 未公开") : ""}<h1>${esc(p.title)}</h1><p>${date(p.published_at || p.created_at)} · 约 ${Math.max(1, Math.ceil(cleanText(p.content).length / 500))} 分钟阅读</p></div>${p.cover_image ? `<img class="article-cover" src="${imageUrl(p.cover_image)}" alt="文章配图" width="1000" height="600">` : ""}<div class="prose note-prose">${renderNoteBody(cleanText(p.content))}</div><aside class="source-note">内容仅供参考。涉及政策、价格、医疗等信息，请以相关机构最新公布内容为准。</aside>${articleNav}<section class="comments"><h2>留下你的想法</h2>${user ? `<form data-api="/api/comments" class="stack"><input type="hidden" name="postId" value="${p.id}">${textarea("content", "评论内容")}${feedback}<button class="button" type="submit">提交评论</button><small>评论审核通过后显示。</small></form>` : '<p><a href="/login/">登录</a>后参与讨论。</p>'}${comments.map((c) => `<div class="comment"><strong>${esc(c.author_name)}</strong><time>${date(c.created_at)}</time><p>${esc(c.content)}</p></div>`).join("")}</section></article>`,
       cleanText(p.excerpt || p.content).slice(0, 150),
     );
   }
