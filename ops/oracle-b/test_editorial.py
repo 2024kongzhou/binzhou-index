@@ -13,7 +13,7 @@ class EditorialTests(unittest.TestCase):
         self.site = Mock()
         self.site.get_posts.return_value = []
         self.site.create_post.return_value = {'id': 1}
-        body = '滨州惠民县开展文明志愿服务。' * 45
+        body = '滨州惠民县开展文明志愿服务。' * 180
         self.proposal = {'eligible': True, 'category':'好人好事', 'subject':'惠民文明志愿服务',
                         'localityEvidence':'滨州惠民县', 'title':'滨州惠民志愿服务温暖邻里',
                         'content':body, 'excerpt':'服务邻里', 'imageSubject':'志愿服务',
@@ -26,6 +26,7 @@ class EditorialTests(unittest.TestCase):
                                     fetch_binzhouw=lambda:[], fetch_article=lambda u:body),
             call_sensenova=Mock(side_effect=[json.dumps(self.proposal), json.dumps({'supported':True,'distinct':True,'imageRelevant':True})]),
             generate_cover_image=Mock(return_value=(b'x'*3000,'image/png')),
+            find_commons_cover=Mock(return_value=None),
             upload_image_to_oracle=Mock(return_value='/api/img/test.png'), pushplus=Mock(return_value=True))
 
     def test_day_is_idempotent(self):
@@ -37,8 +38,8 @@ class EditorialTests(unittest.TestCase):
     def test_publication_persists_and_push_contains_cover(self):
         self.assertTrue(publish(self.hub)['ok'])
         published_content = self.site.create_post.call_args.kwargs['content']
-        self.assertGreaterEqual(len(published_content), 600)
-        self.assertLessEqual(len(published_content), 1000)
+        self.assertGreaterEqual(len(published_content), 1500)
+        self.assertLessEqual(len(published_content), 3000)
         self.assertEqual(len(json.loads((Path(self.tmp.name)/'editorial_ledger.json').read_text())),1)
         self.assertIn('<img ',self.hub.pushplus.call_args.args[1])
         publish(self.hub)

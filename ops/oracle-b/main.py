@@ -12,6 +12,7 @@
 import json
 import asyncio
 import hmac
+import html
 from collections import deque
 import base64
 import io
@@ -599,6 +600,53 @@ def generate_cover_image(prompt: str):
             logger.warning(f"[封面图] Pollinations 请求失败 (attempt {attempt+1}/3): {e}")
             time.sleep(2 ** attempt)
     raise last_err
+
+
+def find_commons_cover(subject: str, locality: str = "滨州"):
+    """Find only a subject-matching Binzhou Commons photo with a reusable license."""
+    params = {
+        "action": "query", "generator": "search", "gsrnamespace": 6,
+        "gsrsearch": f'"{subject}" {locality}', "gsrlimit": 8,
+        "prop": "imageinfo", "iiprop": "url|extmetadata", "iiurlwidth": 1400,
+        "format": "json",
+    }
+    try:
+        response = httpx.get("https://commons.wikimedia.org/w/api.php", params=params,
+                             headers={"User-Agent": "BinzhouIndex/1.0 (image attribution included)"}, timeout=20)
+        response.raise_for_status()
+        pages = response.json().get("query", {}).get("pages", {}).values()
+        approved = {"CC BY 3.0", "CC BY-SA 3.0", "CC BY 4.0", "CC BY-SA 4.0", "CC0", "Public domain"}
+        geography = {"滨州", "Binzhou", "博兴", "Boxing", "阳信", "Yangxin", "沾化", "Zhanhua",
+                     "惠民", "Huimin", "无棣", "Wudi", "邹平", "Zouping"}
+        subject_key = subject.replace(" ", "").lower()
+        for page in pages:
+            info = (page.get("imageinfo") or [{}])[0]
+            meta = info.get("extmetadata", {})
+            license_name = html.unescape(meta.get("LicenseShortName", {}).get("value", "")).strip()
+            title = page.get("title", "").removeprefix("File:")
+            desc = re.sub(r"<[^>]*>", " ", meta.get("ImageDescription", {}).get("value", ""))
+            searchable = html.unescape(title + " " + desc).lower()
+            locality_ok = any(place.lower() in searchable for place in geography if place in locality or place == "Binzhou")
+            subject_ok = subject_key in searchable.replace(" ", "") or any(
+                term.lower() in searchable for term in (subject.split() if len(subject.split()) > 1 else [])
+            )
+            if license_name not in approved or not locality_ok or not subject_ok:
+                continue
+            image_url = info.get("thumburl") or info.get("url")
+            if not image_url:
+                continue
+            image_response = httpx.get(image_url, timeout=30, follow_redirects=True)
+            image_response.raise_for_status()
+            mime = image_response.headers.get("Content-Type", "image/jpeg").split(";")[0]
+            if not mime.startswith("image/") or len(image_response.content) < 10000:
+                continue
+            author = re.sub(r"<[^>]*>", "", meta.get("Artist", {}).get("value", ""))
+            page_url = "https://commons.wikimedia.org/wiki/" + quote(page.get("title", ""), safe="")
+            credit = f"Wikimedia Commons《{title}》，摄影者：{html.unescape(author) or '页面署名作者'}；{license_name}（{meta.get('LicenseUrl', {}).get('value', '')}）；原图：{page_url}。"
+            return image_response.content, mime, credit
+    except Exception as exc:
+        logger.info(f"[封面图] 未找到符合授权和主题的 Commons 实景照片: {type(exc).__name__}")
+    return None
 
 
 def daily_article():

@@ -146,7 +146,7 @@ export async function page(req: Request, env: Env, user: User | null) {
     const [stats, vs, ps, products] = await Promise.all([
       one(
         db,
-        "SELECT (SELECT COUNT(*) FROM villages WHERE status='published' AND name<>'曾用名') villages,(SELECT COUNT(*) FROM posts WHERE status='published' AND title NOT LIKE '%??%' AND content NOT LIKE '%??%' AND (slug NOT LIKE 'daily-%' OR (length(content) BETWEEN 600 AND 1000 AND cover_image<>''))) posts,(SELECT COUNT(*) FROM products WHERE status='active') products",
+        "SELECT (SELECT COUNT(*) FROM villages WHERE status='published' AND name<>'曾用名') villages,(SELECT COUNT(*) FROM posts WHERE status='published' AND title NOT LIKE '%??%' AND content NOT LIKE '%??%' AND length(content) BETWEEN 1500 AND 3000 AND cover_image<>'') posts,(SELECT COUNT(*) FROM products WHERE status='active') products",
       ),
       all(
         db,
@@ -154,7 +154,7 @@ export async function page(req: Request, env: Env, user: User | null) {
       ),
       all(
         db,
-        "SELECT * FROM posts WHERE status='published' AND title NOT LIKE '%??%' AND content NOT LIKE '%??%' AND (slug NOT LIKE 'daily-%' OR (length(content) BETWEEN 600 AND 1000 AND cover_image<>'')) AND id IN (SELECT MAX(id) FROM posts WHERE status='published' GROUP BY title) ORDER BY created_at DESC,id DESC LIMIT 3",
+        "SELECT * FROM posts WHERE status='published' AND title NOT LIKE '%??%' AND content NOT LIKE '%??%' AND length(content) BETWEEN 1500 AND 3000 AND cover_image<>'' AND id IN (SELECT MAX(id) FROM posts WHERE status='published' GROUP BY title) ORDER BY created_at DESC,id DESC LIMIT 3",
       ),
       all(
         db,
@@ -258,7 +258,7 @@ export async function page(req: Request, env: Env, user: User | null) {
   }
   if (path === "/blog/") {
     const n = integer(url.searchParams.get("page"), 1, 1, 10000),
-      w = "status='published' AND title NOT LIKE '%??%' AND content NOT LIKE '%??%' AND (slug NOT LIKE 'daily-%' OR (length(content) BETWEEN 600 AND 1000 AND cover_image<>'')) AND id IN (SELECT MAX(id) FROM posts WHERE status='published' GROUP BY title)" + (q ? " AND title LIKE ?" : ""),
+      w = "status='published' AND title NOT LIKE '%??%' AND content NOT LIKE '%??%' AND length(content) BETWEEN 1500 AND 3000 AND cover_image<>'' AND id IN (SELECT MAX(id) FROM posts WHERE status='published' GROUP BY title)" + (q ? " AND title LIKE ?" : ""),
       args = q ? ["%" + q + "%"] : [];
     const ps = await all(
         db,
@@ -280,12 +280,12 @@ export async function page(req: Request, env: Env, user: User | null) {
   if (match) {
     const p = await one(
       db,
-      "SELECT * FROM posts WHERE slug=? AND title NOT LIKE '%??%' AND content NOT LIKE '%??%' AND (slug NOT LIKE 'daily-%' OR (length(content) BETWEEN 600 AND 1000 AND cover_image<>'')) AND (status='published' OR ?=1)",
+      "SELECT * FROM posts WHERE slug=? AND title NOT LIKE '%??%' AND content NOT LIKE '%??%' AND length(content) BETWEEN 1500 AND 3000 AND cover_image<>'' AND (status='published' OR ?=1)",
       decodeURIComponent(match[1]),
       user?.role === "admin" ? 1 : 0,
     );
     if (!p) throw new HttpError(404, "文章不存在或尚未发布");
-    const postFilter = "status='published' AND title NOT LIKE '%??%' AND content NOT LIKE '%??%' AND (slug NOT LIKE 'daily-%' OR (length(content) BETWEEN 600 AND 1000 AND cover_image<>''))";
+    const postFilter = "status='published' AND title NOT LIKE '%??%' AND content NOT LIKE '%??%' AND length(content) BETWEEN 1500 AND 3000 AND cover_image<>''";
     const [previous, next, comments] = await Promise.all([
       one(db, `SELECT slug,title FROM posts WHERE ${postFilter} AND (created_at>? OR (created_at=? AND id>?)) ORDER BY created_at ASC,id ASC LIMIT 1`, p.created_at, p.created_at, p.id),
       one(db, `SELECT slug,title FROM posts WHERE ${postFilter} AND (created_at<? OR (created_at=? AND id<?)) ORDER BY created_at DESC,id DESC LIMIT 1`, p.created_at, p.created_at, p.id),

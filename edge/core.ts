@@ -308,7 +308,7 @@ export async function api(
     return json(
       await one(
         db,
-        "SELECT (SELECT COUNT(*) FROM villages WHERE status='published' AND name<>'曾用名') villages,(SELECT COUNT(*) FROM posts WHERE status='published' AND title NOT LIKE '%??%' AND content NOT LIKE '%??%' AND (slug NOT LIKE 'daily-%' OR (length(content) BETWEEN 600 AND 1000 AND cover_image<>''))) posts,(SELECT COUNT(*) FROM products WHERE status='active') products,(SELECT COUNT(*) FROM chronicles WHERE status='published') chronicles",
+        "SELECT (SELECT COUNT(*) FROM villages WHERE status='published' AND name<>'曾用名') villages,(SELECT COUNT(*) FROM posts WHERE status='published' AND title NOT LIKE '%??%' AND content NOT LIKE '%??%' AND length(content) BETWEEN 1500 AND 3000 AND cover_image<>'') posts,(SELECT COUNT(*) FROM products WHERE status='active') products,(SELECT COUNT(*) FROM chronicles WHERE status='published') chronicles",
       ),
     );
   }
@@ -361,13 +361,13 @@ export async function api(
     if (q.get("slug")) {
       const p = await one(
         db,
-        "SELECT * FROM posts WHERE slug=? AND title NOT LIKE '%??%' AND content NOT LIKE '%??%' AND (slug NOT LIKE 'daily-%' OR (length(content) BETWEEN 600 AND 1000 AND cover_image<>'')) AND (status='published' OR ?=1)",
+        "SELECT * FROM posts WHERE slug=? AND title NOT LIKE '%??%' AND content NOT LIKE '%??%' AND length(content) BETWEEN 1500 AND 3000 AND cover_image<>'' AND (status='published' OR ?=1)",
         q.get("slug")!,
         user?.role === "admin" ? 1 : 0,
       );
       return json({ post: p ? camel(p) : null }, p ? 200 : 404);
     }
-    const where = ["status=?", "title NOT LIKE '%??%'", "content NOT LIKE '%??%'", "(slug NOT LIKE 'daily-%' OR (length(content) BETWEEN 600 AND 1000 AND cover_image<>''))"],
+    const where = ["status=?", "title NOT LIKE '%??%'", "content NOT LIKE '%??%'", "length(content) BETWEEN 1500 AND 3000", "cover_image<>''"],
       args: (string | number)[] = [requested];
     if (q.get("search")) {
       where.push("title LIKE ?");
@@ -442,15 +442,15 @@ export async function api(
       !/^https:\/\//.test(cover)
     )
       throw new HttpError(400, "封面地址不正确");
-    if (status === "published" && req.method === "POST" && !cover)
+    if (status === "published" && !cover)
       throw new HttpError(400, "发布文章必须提供与滨州内容相关且来源可追溯的封面图");
+    if (status === "published") {
+      const plainLength = content.replace(/<[^>]*>/g, "").trim().length;
+      if (plainLength < 1500 || plainLength > 3000)
+        throw new HttpError(400, "发布文章正文须为1500至3000字");
+    }
     if (req.method === "POST" && status === "published" && await one(db, "SELECT id FROM posts WHERE title=? AND status='published'", title))
       throw new HttpError(409, "已有同标题文章，请更换主题或编辑原文");
-    if (status === "published" && slug.startsWith("daily-")) {
-      const plainLength = content.replace(/<[^>]*>/g, "").trim().length;
-      if (plainLength < 600 || plainLength > 1000) throw new HttpError(400, "每日文章正文须为600至1000字");
-      if (!cover) throw new HttpError(400, "每日文章必须提供至少一张封面图");
-    }
     let p: Row | null;
     if (req.method === "PUT")
       p = await db
