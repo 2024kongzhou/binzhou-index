@@ -137,11 +137,11 @@ export async function page(req: Request, env: Env, user: User | null) {
     const [stats, vs, ps, products] = await Promise.all([
       one(
         db,
-        "SELECT (SELECT COUNT(*) FROM villages WHERE status='published') villages,(SELECT COUNT(*) FROM posts WHERE status='published') posts,(SELECT COUNT(*) FROM products WHERE status='active') products",
+        "SELECT (SELECT COUNT(*) FROM villages WHERE status='published' AND name<>'曾用名') villages,(SELECT COUNT(*) FROM posts WHERE status='published') posts,(SELECT COUNT(*) FROM products WHERE status='active') products",
       ),
       all(
         db,
-        "SELECT * FROM villages WHERE status='published' ORDER BY id DESC LIMIT 6",
+        "SELECT * FROM villages WHERE status='published' AND name<>'曾用名' ORDER BY id DESC LIMIT 6",
       ),
       all(
         db,
@@ -163,7 +163,7 @@ export async function page(req: Request, env: Env, user: User | null) {
       n = integer(url.searchParams.get("page"), 1, 1, 10000),
       size = 18,
       args: (string | number)[] = [],
-      where = ["status='published'"];
+      where = ["status='published'", "name<>'曾用名'"];
     if (q) {
       where.push("(name LIKE ? OR township LIKE ?)");
       args.push("%" + q + "%", "%" + q + "%");
@@ -184,7 +184,7 @@ export async function page(req: Request, env: Env, user: User | null) {
       one(db, `SELECT COUNT(*) total FROM villages WHERE ${w}`, ...args),
       all(
         db,
-        "SELECT district,COUNT(*) total FROM villages WHERE status='published' AND district IS NOT NULL GROUP BY district ORDER BY total DESC",
+        "SELECT district,COUNT(*) total FROM villages WHERE status='published' AND name<>'曾用名' AND district IS NOT NULL GROUP BY district ORDER BY total DESC",
       ),
       search && q
         ? all(
@@ -204,7 +204,7 @@ export async function page(req: Request, env: Env, user: User | null) {
   if (match) {
     let v = await one(
       db,
-      "SELECT * FROM villages WHERE id=? AND status='published'",
+      "SELECT * FROM villages WHERE id=? AND status='published' AND name<>'曾用名'",
       Number(match[1]),
     );
     if (!v) throw new HttpError(404, "村庄档案不存在");

@@ -308,7 +308,7 @@ export async function api(
     return json(
       await one(
         db,
-        "SELECT (SELECT COUNT(*) FROM villages WHERE status='published') villages,(SELECT COUNT(*) FROM posts WHERE status='published') posts,(SELECT COUNT(*) FROM products WHERE status='active') products,(SELECT COUNT(*) FROM chronicles WHERE status='published') chronicles",
+        "SELECT (SELECT COUNT(*) FROM villages WHERE status='published' AND name<>'曾用名') villages,(SELECT COUNT(*) FROM posts WHERE status='published') posts,(SELECT COUNT(*) FROM products WHERE status='active') products,(SELECT COUNT(*) FROM chronicles WHERE status='published') chronicles",
       ),
     );
   }
@@ -316,12 +316,12 @@ export async function api(
     if (q.has("id")) {
       const v = await one(
         db,
-        "SELECT * FROM villages WHERE id=? AND status='published'",
+        "SELECT * FROM villages WHERE id=? AND status='published' AND name<>'曾用名'",
         integer(q.get("id"), 0, 1, 1e9),
       );
       return json({ village: v ? camel(verifiedVillage(v)) : null }, v ? 200 : 404);
     }
-    const where = ["status='published'"],
+    const where = ["status='published'", "name<>'曾用名'"],
       args: (string | number)[] = [];
     for (const k of ["district", "township"])
       if (q.get(k)) {
