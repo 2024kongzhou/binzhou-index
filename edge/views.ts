@@ -71,6 +71,15 @@ function sectionHead(kicker: string, title: string, href?: string) {
 function postCard(p: Row, featured = false) {
   return `<article class="story-card ${featured ? "featured" : ""}"><a href="/blog/${encodeURIComponent(String(p.slug))}/" class="card-image"><img src="${imageUrl(p.cover_image)}" alt="" loading="lazy" width="640" height="400"><span class="image-label">${p.ai_generated ? "AI 辅助创作" : "城市故事"}</span></a><div class="card-body"><span class="meta">${date(p.created_at)} <span>·</span> 滨州故事</span><h3><a href="/blog/${encodeURIComponent(String(p.slug))}/">${esc(p.title)}</a></h3><p>${esc(cleanText(p.excerpt || p.content).slice(0, 100))}</p><a class="text-link" href="/blog/${encodeURIComponent(String(p.slug))}/">阅读全文 ${icon("arrow", 16)}</a></div></article>`;
 }
+function uniquePosts(posts: Row[]) {
+  const seen = new Set<string>();
+  return posts.filter((p) => {
+    const key = String(p.title || '').trim();
+    if (!key || seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
 function villageCard(v: Row) {
   v = verifiedVillage(v);
   return `<a class="village-card" href="/place/${v.id}/"><div class="village-top">${badge(v.district || "滨州")}<span>${esc(v.township)}</span>${icon("arrow", 18)}</div><h3>${esc(v.name)}</h3><p>${esc(cleanText(v.history || v.evolution || "乡土记忆，值得被认真记录。").slice(0, 95))}</p><span class="village-bottom">${icon("pin", 14)} ${esc([v.district, v.township].filter(Boolean).join(" · "))}</span></a>`;

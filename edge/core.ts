@@ -442,6 +442,8 @@ export async function api(
       !/^https:\/\//.test(cover)
     )
       throw new HttpError(400, "封面地址不正确");
+    if (req.method === "POST" && status === "published" && await one(db, "SELECT id FROM posts WHERE title=? AND status='published'", title))
+      throw new HttpError(409, "已有同标题文章，请更换主题或编辑原文");
     let p: Row | null;
     if (req.method === "PUT")
       p = await db
