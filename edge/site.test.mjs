@@ -431,3 +431,11 @@ await test("publication cleanup hides OCR towns, demo merchandise and invalid du
   assert.equal((await request("/place/6283/")).status, 404);
   assert.equal((await request("/product/22/")).status, 404);
 });
+
+await test("exact village duplicates are hidden while different-source records stay public", async () => {
+  sqlite.exec("INSERT INTO villages(id,name,district,township,history,status) VALUES(99100,'同名村','滨城区','滨北街道','同一份记录','published'),(99101,'同名村','滨城区','滨北街道','同一份记录','published'),(99102,'同名村','滨城区','滨北街道','另一份记录','published')");
+  sqlite.exec(readFileSync(new URL("../drizzle/migrations/0005_archive_exact_village_duplicates.sql", import.meta.url), "utf8"));
+  assert.equal(sqlite.prepare("SELECT status FROM villages WHERE id=99100").get().status, "published");
+  assert.equal(sqlite.prepare("SELECT status FROM villages WHERE id=99101").get().status, "draft");
+  assert.equal(sqlite.prepare("SELECT status FROM villages WHERE id=99102").get().status, "published");
+});
