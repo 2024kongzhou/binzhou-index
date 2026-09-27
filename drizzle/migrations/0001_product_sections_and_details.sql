@@ -1,0 +1,4 @@
+ALTER TABLE products ADD COLUMN unit TEXT DEFAULT '';
+ALTER TABLE products ADD COLUMN material TEXT DEFAULT '';
+ALTER TABLE products ADD COLUMN customer_service TEXT DEFAULT '';
+ALTER TABLE products ADD COLUMN section TEXT NOT NULL DEFAULT 'goods';
