@@ -77,6 +77,14 @@ await test('template village narratives are isolated until an original source is
   assert.match(data.village.history,/模板化沿革/);
   assert.doesNotMatch(data.village.history,/先进的农耕技术/);
 });
+await test('孙家 preserves the page evidence even when the gazetteer records a later merger', async () => {
+  sqlite.prepare("INSERT INTO villages(id,name,district,township,status) VALUES(99010,'孙家','滨城区','滨城镇','published')").run();
+  const data=await (await request('/api/villages?id=99010')).json();
+  assert.match(data.village.history,/1976年并入后山王大队/);
+  assert.match(data.village.population,/13户、53人/);
+  assert.match(data.village.sourceFile,/第218页/);
+  assert.match(data.village.evolution,/独立自然村/);
+});
 await test('gazetteer stays primary and suspect values are quarantined only on exact matches', async () => {
   sqlite.prepare("INSERT INTO villages(id,name,district,township,population,farmland,status) VALUES(99005,'柳家','滨城区','滨城镇','43664','55993亩','published'),(99006,'东关','滨城区','滨城镇','43664','55993亩','published'),(99007,'东关','滨城区','滨城镇','123','456亩','published')").run();
   const primary=await (await request('/api/villages?id=99005')).json();
