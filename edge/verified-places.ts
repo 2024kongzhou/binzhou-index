@@ -1,5 +1,6 @@
 import type { Row } from './core';
 import { quarantinedValues } from './quarantined-village-values';
+import { gazetteerBatch } from './gazetteer-batch';
 
 // Transcribed and visually checked against the supplied gazetteer, PDF page 11 / printed page 183.
 export const verifiedPlaces = [
@@ -12,11 +13,20 @@ export const verifiedPlaces = [
 ];
 
 export function verifiedVillage(v:Row):Row {
-  const pending={...v,version_tag:'旧汇编 · 尚未逐页核验',remark:'此条尚未逐页对照《滨州市地名志》，旧汇编可能存在错填、漏项或年代混用，不应视为已核定资料。'+String(v.remark||'')};
+  const pending:Row={...v,version_tag:'旧汇编 · 尚未逐页核验',remark:'此条尚未逐页对照《滨州市地名志》，旧汇编可能存在错填、漏项或年代混用，不应视为已核定资料。'+String(v.remark||'')};
   const suspect=quarantinedValues[[v.district,v.township,v.name].join('|')];
   if(suspect) for(const field of ['population','farmland','history','evolution','surnames']) {
     if(suspect[field]&&String(v[field])===suspect[field])
       (pending as Row)[field]='待原页核验（旧汇编疑似重复错填或无依据推断，已隔离）';
+  }
+  const batch=gazetteerBatch[String(v.id)];
+  if(batch && !verifiedPlaces.some(f=>f.name===String(v.name).replace(/村$/,''))) {
+    return {...pending,
+      population:batch.population||pending.population,
+      farmland:batch.farmland||pending.farmland,
+      source_file:batch.source,
+      version_tag:'《滨州市地名志》批量匹配 · 待原页复核',
+      remark:'本条已按村名＋乡镇上下文批量匹配 PDF 候选条目；候选字段已上线，原页 OCR 和同名身份仍需逐条复核。证据页：PDF第'+batch.page+'页。'};
   }
   if(v.district!=='滨城区'||v.township!=='滨城镇') return pending;
   const f=verifiedPlaces.find(f=>f.name===String(v.name).replace(/村$/,''));
