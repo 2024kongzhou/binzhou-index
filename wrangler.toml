@@ -7,6 +7,7 @@ pages_build_output_dir = "dist"
 binding = "DB"
 database_name = "binzhou-db"
 database_id = "89076eca-69b1-45f4-8240-e93e971182bb"
+migrations_dir = "drizzle/migrations"
 
 [[kv_namespaces]]
 binding = "CACHE"
@@ -25,6 +26,7 @@ AI_HUB_URL = ""
 binding = "DB"
 database_name = "binzhou-db"
 database_id = "89076eca-69b1-45f4-8240-e93e971182bb"
+migrations_dir = "drizzle/migrations"
 
 [[env.preview.kv_namespaces]]
 binding = "CACHE"
