@@ -936,8 +936,8 @@ button svg {
 .article-nav {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 32px;
-  margin: 36px 0 16px;
+  gap: 56px;
+  margin: 48px 0 24px;
 }
 .article-nav a {
   display: flex;
