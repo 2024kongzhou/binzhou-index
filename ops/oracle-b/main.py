@@ -19,6 +19,7 @@ import io
 import logging
 import os
 import re
+import time
 import sys
 import time
 import uuid
@@ -262,8 +263,20 @@ class SiteClient:
     def get_posts(self, status="published"):
         posts = []
         for offset in range(0, 100001, 100):
-            r = self.http.get("/api/posts", params={"status": status, "limit": 100, "offset": offset},
-                              headers=self._auth_headers() if status != "published" else {})
+            r = None
+            for attempt in range(3):
+                try:
+                    r = self.http.get("/api/posts", params={"status": status, "limit": 100, "offset": offset},
+                                      headers=self._auth_headers() if status != "published" else {})
+                    if r.status_code not in (502, 503, 504):
+                        break
+                    logger.warning("[网站] 读取文章列表返回 %s，第 %s 次重试", r.status_code, attempt + 1)
+                except httpx.HTTPError as exc:
+                    logger.warning("[网站] 读取文章列表失败，第 %s 次重试：%s", attempt + 1, type(exc).__name__)
+                if attempt < 2:
+                    time.sleep(2 ** attempt)
+            if r is None:
+                raise RuntimeError("读取文章列表失败")
             r.raise_for_status()
             page = r.json().get("posts", [])
             posts.extend(page)
