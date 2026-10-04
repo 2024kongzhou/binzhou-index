@@ -10,7 +10,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
 import {
-  Shield,\r?\n  Activity,\r?\n  FileText,
+  Shield,\r?
+  Activity,\r?
+  FileText,
   ShoppingBag,
   BookOpen,
   Users,
@@ -20,7 +22,9 @@ import {
 
 export default function AdminPage() {
   const [user, setUser] = useState<any>(null);
-  const [loading, setLoading] = useState(true);\n  const [metrics, setMetrics] = useState<any>(null);\n  const [overview, setOverview] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [metrics, setMetrics] = useState<any>(null);
+  const [overview, setOverview] = useState<any>(null);
   const router = useRouter();
   const { toast } = useToast();
 
@@ -41,7 +45,12 @@ export default function AdminPage() {
           router.push("/");
           return;
         }
-        setUser(data.user);\n        Promise.all([\n          fetch("/api/stats", { credentials: "include" }).then((r) => r.json()),\n          fetch("/api/admin/overview", { credentials: "include" }).then((r) => r.json()),\n        ]).then(([stats, data]) => { setMetrics(stats); setOverview(data); }).catch(() => {});\n        setLoading(false);
+        setUser(data.user);
+        Promise.all([
+          fetch("/api/stats", { credentials: "include" }).then((r) => r.json()),
+          fetch("/api/admin/overview", { credentials: "include" }).then((r) => r.json()),
+        ]).then(([stats, data]) => { setMetrics(stats); setOverview(data); }).catch(() => {});
+        setLoading(false);
       })
       .catch(() => router.push("/"));
   }, [router]);
@@ -217,4 +226,5 @@ export default function AdminPage() {
     </div>
   );
 }
+
 
