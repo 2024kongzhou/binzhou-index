@@ -10,8 +10,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
 import {
-  Shield,\r?
-  Activity,\r?
+  Shield,
+  Activity,
   FileText,
   ShoppingBag,
   BookOpen,
@@ -226,5 +226,6 @@ export default function AdminPage() {
     </div>
   );
 }
+
 
 
