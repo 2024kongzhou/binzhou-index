@@ -127,7 +127,8 @@ export default function AdminPage() {
       </div>
 
       <Tabs defaultValue="posts" className="space-y-6">
-        <TabsList className="grid grid-cols-4 w-full max-w-lg">
+        <TabsList className="grid grid-cols-5 w-full max-w-2xl">
+          <TabsTrigger value="overview" className="gap-1"><Activity className="h-4 w-4" /> 运行状况</TabsTrigger>
           <TabsTrigger value="posts" className="gap-1">
             <FileText className="h-4 w-4" /> 文章
           </TabsTrigger>
@@ -141,6 +142,20 @@ export default function AdminPage() {
             <Users className="h-4 w-4" /> 用户
           </TabsTrigger>
         </TabsList>
+
+        <TabsContent value="overview">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {[["已发布文章", metrics?.posts ?? 0, "符合公开展示规则"], ["村庄档案", metrics?.villages ?? 0, "已公开记录"], ["本地好物", metrics?.products ?? 0, "正在展示"], ["待审核评论", (overview?.comments || []).filter((x: any) => x.status === "pending").length, "需要管理员处理"]].map(([label, value, hint]) => (
+              <Card key={String(label)}><CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground">{label}</CardTitle></CardHeader><CardContent><div className="text-3xl font-semibold">{value}</div><p className="mt-1 text-xs text-muted-foreground">{hint}</p></CardContent></Card>
+            ))}
+          </div>
+          <Card className="mt-6"><CardHeader><CardTitle>发布与服务状态</CardTitle></CardHeader><CardContent className="grid gap-3 sm:grid-cols-2">
+            <div className="rounded-lg border p-4"><p className="font-medium">网站运行</p><p className="mt-1 text-sm text-emerald-600">正常 · Cloudflare Pages / D1</p></div>
+            <div className="rounded-lg border p-4"><p className="font-medium">每日文章任务</p><p className="mt-1 text-sm text-emerald-600">已配置 · 北京时间每天 07:00</p></div>
+            <div className="rounded-lg border p-4"><p className="font-medium">文章规则</p><p className="mt-1 text-sm text-muted-foreground">滨州主题、1500–3000 字、配图与来源说明</p></div>
+            <div className="rounded-lg border p-4"><p className="font-medium">管理数据</p><p className="mt-1 text-sm text-muted-foreground">文章 {overview?.posts?.length ?? 0} 条 · 用户 {overview?.users?.length ?? 0} 个</p></div>
+          </CardContent></Card>
+        </TabsContent>
 
         <TabsContent value="posts">
           <Card>
