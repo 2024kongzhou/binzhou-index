@@ -147,7 +147,7 @@ await test("public pages render and unknown routes return 404", async () => {
     assert.equal((await request(p)).status, 200, p);
   assert.equal((await request("/not-found/")).status, 404);
 });
-await test("redirects stay relative and pages.dev returns to the canonical domain", async () => {
+await test("redirects stay relative and security headers are set", async () => {
   const admin = await request("/admin/");
   assert.equal(admin.status, 303);
   assert.equal(admin.headers.get("Location"), "/login/");
@@ -162,17 +162,6 @@ await test("redirects stay relative and pages.dev returns to the canonical domai
   const favicon = await request("/favicon.ico");
   assert.equal(favicon.status, 308);
   assert.equal(favicon.headers.get("Location"), "/assets/mark.svg");
-  const direct = await worker.fetch(
-    new Request("https://binzhou-index.pages.dev/blog/daily-20261113/", {
-      headers: { Host: "binzhou-index.pages.dev" },
-    }),
-    env,
-  );
-  assert.equal(direct.status, 308);
-  assert.equal(
-    direct.headers.get("Location"),
-    "https://keyi.de5.net/blog/daily-20261113/",
-  );
 });
 await test("writes require admin and same origin; preview is read only", async () => {
   assert.equal(

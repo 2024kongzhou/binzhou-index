@@ -34,13 +34,7 @@ export default {
     let response: Response;
     const url = new URL(req.url);
     try {
-      const requestHost = req.headers.get("Host") || url.hostname;
-      if (requestHost === "binzhou-index.pages.dev")
-        response = redirect(
-          "https://keyi.de5.net" + url.pathname + url.search,
-          308,
-        );
-      else if (url.pathname === "/assets/site.css")
+      if (url.pathname === "/assets/site.css")
         response = asset(css, "text/css; charset=utf-8");
       else if (url.pathname === "/assets/site.js")
         response = asset(client, "text/javascript; charset=utf-8");
