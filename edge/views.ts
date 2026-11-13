@@ -11,6 +11,7 @@ import {
   User,
   requireUser,
   HttpError,
+  redirect,
 } from "./core";
 export const icon = (name: string, size = 20) =>
   `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${({ search: '<circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4 4"/>', arrow: '<path d="M4 12h16m-6-6 6 6-6 6"/>', pin: '<path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/>', book: '<path d="M12 5v16M3 3c4-1 6 0 9 2 3-2 5-3 9-2v16c-4-1-6 0-9 2-3-2-5-3-9-2Z"/>', bag: '<path d="M4 7h16l1 14H3L4 7Z"/><path d="M8 8V6a4 4 0 0 1 8 0v2"/>', menu: '<path d="M4 6h16M4 12h16M4 18h16"/>', sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1 1m12 12 1 1M5 19l1-1M18 6l1-1"/>', phone: '<path d="M7 3H3c-1 9 9 19 18 18v-4l-5-2-2 2-7-7 2-2-2-5Z"/>' } as Record<string, string>)[name] || '<path d="M5 12h14"/>'}</svg>`;
@@ -158,7 +159,7 @@ export async function page(req: Request, env: Env, user: User | null) {
     const [stats, vs, ps, products, gardenNotes] = await Promise.all([
       one(
         db,
-        "SELECT (SELECT COUNT(*) FROM villages WHERE status='published' AND name<>'曾用名') villages,(SELECT COUNT(*) FROM posts WHERE status='published' AND title NOT LIKE '%??%' AND content NOT LIKE '%??%' AND length(content) BETWEEN 1500 AND 3000 AND cover_image<>'') posts,(SELECT COUNT(*) FROM products WHERE status='active') products",
+        "SELECT (SELECT COUNT(*) FROM villages WHERE status='published' AND name<>'曾用名') villages,(SELECT COUNT(*) FROM posts WHERE status='published' AND title NOT LIKE '%??%' AND content NOT LIKE '%??%' AND (slug NOT LIKE 'daily-%' OR (length(content) BETWEEN 600 AND 1000 AND cover_image<>''))) posts,(SELECT COUNT(*) FROM products WHERE status='active') products",
       ),
       all(
         db,
@@ -166,7 +167,7 @@ export async function page(req: Request, env: Env, user: User | null) {
       ),
       all(
         db,
-        "SELECT * FROM posts WHERE status='published' AND title NOT LIKE '%??%' AND content NOT LIKE '%??%' AND length(content) BETWEEN 1500 AND 3000 AND cover_image<>'' AND id IN (SELECT MAX(id) FROM posts WHERE status='published' GROUP BY title) ORDER BY coalesce(published_at,created_at) DESC,id DESC LIMIT 3",
+        "SELECT * FROM posts WHERE status='published' AND title NOT LIKE '%??%' AND content NOT LIKE '%??%' AND (slug NOT LIKE 'daily-%' OR (length(content) BETWEEN 600 AND 1000 AND cover_image<>'')) AND id IN (SELECT MAX(id) FROM posts WHERE status='published' GROUP BY title) ORDER BY coalesce(published_at,created_at) DESC,id DESC LIMIT 3",
       ),
       all(
         db,
@@ -272,7 +273,7 @@ export async function page(req: Request, env: Env, user: User | null) {
   }
   if (path === "/blog/") {
     const n = integer(url.searchParams.get("page"), 1, 1, 10000),
-      w = "status='published' AND title NOT LIKE '%??%' AND content NOT LIKE '%??%' AND length(content) BETWEEN 1500 AND 3000 AND cover_image<>'' AND id IN (SELECT MAX(id) FROM posts WHERE status='published' GROUP BY title)" + (q ? " AND title LIKE ?" : ""),
+      w = "status='published' AND title NOT LIKE '%??%' AND content NOT LIKE '%??%' AND (slug NOT LIKE 'daily-%' OR (length(content) BETWEEN 600 AND 1000 AND cover_image<>'')) AND id IN (SELECT MAX(id) FROM posts WHERE status='published' GROUP BY title)" + (q ? " AND title LIKE ?" : ""),
       args = q ? ["%" + q + "%"] : [];
     const ps = await all(
         db,
@@ -294,12 +295,12 @@ export async function page(req: Request, env: Env, user: User | null) {
   if (match) {
     const p = await one(
       db,
-      "SELECT * FROM posts WHERE slug=? AND ((status='published' AND title NOT LIKE '%??%' AND content NOT LIKE '%??%' AND length(content) BETWEEN 1500 AND 3000 AND cover_image<>'') OR ?=1)",
+        "SELECT * FROM posts WHERE slug=? AND ((status='published' AND title NOT LIKE '%??%' AND content NOT LIKE '%??%' AND (slug NOT LIKE 'daily-%' OR (length(content) BETWEEN 600 AND 1000 AND cover_image<>''))) OR ?=1)",
       decodeURIComponent(match[1]),
       user?.role === "admin" ? 1 : 0,
     );
     if (!p) throw new HttpError(404, "文章不存在或尚未发布");
-    const postFilter = "status='published' AND title NOT LIKE '%??%' AND content NOT LIKE '%??%' AND length(content) BETWEEN 1500 AND 3000 AND cover_image<>''";
+    const postFilter = "status='published' AND title NOT LIKE '%??%' AND content NOT LIKE '%??%' AND (slug NOT LIKE 'daily-%' OR (length(content) BETWEEN 600 AND 1000 AND cover_image<>''))";
     const [previous, next, comments] = await Promise.all([
       one(db, `SELECT slug,title FROM posts WHERE ${postFilter} AND (coalesce(published_at,created_at)>? OR (coalesce(published_at,created_at)=? AND id>?)) ORDER BY coalesce(published_at,created_at) ASC,id ASC LIMIT 1`, p.published_at || p.created_at, p.published_at || p.created_at, p.id),
       one(db, `SELECT slug,title FROM posts WHERE ${postFilter} AND (coalesce(published_at,created_at)<? OR (coalesce(published_at,created_at)=? AND id<?)) ORDER BY coalesce(published_at,created_at) DESC,id DESC LIMIT 1`, p.published_at || p.created_at, p.published_at || p.created_at, p.id),
@@ -358,10 +359,7 @@ export async function page(req: Request, env: Env, user: User | null) {
   if (path === "/login/" || path === "/register/") {
     const reg = path === "/register/";
     if (user)
-      return Response.redirect(
-        url.origin + (user.role === "admin" ? "/admin/" : "/messages/"),
-        303,
-      );
+      return redirect(user.role === "admin" ? "/admin/" : "/messages/");
     return render(
       reg ? "创建账号" : "欢迎回来",
       `<div class="auth-layout container"><div class="auth-art"><span class="eyebrow">WELCOME TO BINZHOU</span><h1>与这座城市，<br>多一点连接。</h1><img src="/assets/landscape.svg" alt="" width="500" height="400"></div><section class="auth-card"><span class="eyebrow">滨州索引</span><h2>${reg ? "创建你的账号" : "欢迎回来"}</h2><p>${reg ? "留下足迹，参与身边的故事。" : "登录后，继续与家乡的对话。"}</p><form class="stack" data-api="/api/auth/${reg ? "register" : "login"}" data-redirect="/">${reg ? input("username", "用户名", "text", true, "", 'autocomplete="username" maxlength="40"') : ""}${input(reg ? "email" : "account", reg ? "邮箱" : "邮箱或已绑定手机号", reg ? "email" : "text", true, "", 'autocomplete="username"')}${input("password", "密码", "password", true, "", `autocomplete="${reg ? "new-password" : "current-password"}" ${reg ? 'minlength="10"' : ""} maxlength="72"`)}${reg ? '<small>请使用至少 10 位的密码。注册即表示同意<a href="/terms/">用户协议</a>与<a href="/privacy/">隐私政策</a>。</small>' : ""}${feedback}<button class="button full" type="submit">${reg ? "创建账号" : "登录"} ${icon("arrow")}</button></form><p class="auth-switch">${reg ? '已有账号？ <a href="/login/">立即登录</a>' : '还没有账号？ <a href="/register/">免费注册</a>'}</p></section></div>`,
@@ -373,7 +371,7 @@ export async function page(req: Request, env: Env, user: User | null) {
       `<div class="container">${intro("LOCAL LIFE", "让你的生活想法，落到实处。", "窗帘、墙布与本地生活服务。告诉我们你的需求，我们会与你联系。")}<div class="contact-grid"><div><div class="contact-card">${icon("phone", 30)}<h2>直接聊聊</h2><a class="contact-number" href="tel:13326280320">133 2628 0320</a><p>工作日 9:00–18:00<br>山东省滨州市</p><a class="text-link" href="mailto:admin@keyi.de5.net">邮件联系 ${icon("arrow", 16)}</a></div><div class="contact-card"><h3>资料补充与纠错</h3><p>如果你发现村庄资料需要更新，或有值得记录的家乡故事，欢迎通过私信告诉我们。</p>${link("/messages/", "发送私信", "text-link")}</div></div><form class="info-card stack" data-api="/api/bookings"><h2>预约本地服务</h2><p>提交需求不产生费用，具体服务由双方沟通确认。</p><div class="form-grid">${input("name", "称呼", "text", true, "", 'autocomplete="name" maxlength="50"')}${input("phone", "联系电话", "tel", true, "", 'autocomplete="tel" maxlength="20"')}</div>${input("serviceType", "需要什么服务", "text", true, url.searchParams.get("service") || "", 'placeholder="例如：窗帘定制、上门测量" maxlength="80"')}${input("address", "服务地址（选填）", "text", false, "", 'autocomplete="street-address" maxlength="300"')}${input("preferredDate", "期望日期（选填）", "date", false)}${textarea("note", "补充说明（选填）", "", false)}<label class="check-label"><input type="checkbox" required>我同意为处理本次预约提供上述联系信息。</label>${feedback}<button type="submit" class="button">提交预约 ${icon("arrow")}</button></form></div></div>`,
     );
   if (path === "/messages/") {
-    if (!user) return Response.redirect(url.origin + "/login/", 303);
+    if (!user) return redirect("/login/");
     const ms =
       user.role === "admin"
         ? await all(
@@ -392,7 +390,7 @@ export async function page(req: Request, env: Env, user: User | null) {
     );
   }
   if (path === "/admin/") {
-    if (!user) return Response.redirect(url.origin + "/login/", 303);
+    if (!user) return redirect("/login/");
     return adminPage(req, env, user);
   }
   const legal: Record<string, [string, string]> = {

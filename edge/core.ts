@@ -35,6 +35,15 @@ export function json(data: unknown, status = 200, extra: HeadersInit = {}) {
     },
   });
 }
+export function redirect(
+  location: string,
+  status: 301 | 302 | 303 | 307 | 308 = 303,
+) {
+  return new Response(null, {
+    status,
+    headers: { Location: location },
+  });
+}
 export class HttpError extends Error {
   constructor(
     public status: number,
@@ -326,7 +335,7 @@ export async function api(
     return json(
       await one(
         db,
-        "SELECT (SELECT COUNT(*) FROM villages WHERE status='published' AND name<>'曾用名') villages,(SELECT COUNT(*) FROM posts WHERE status='published' AND title NOT LIKE '%??%' AND content NOT LIKE '%??%' AND length(content) BETWEEN 1500 AND 3000 AND cover_image<>'') posts,(SELECT COUNT(*) FROM products WHERE status='active') products,(SELECT COUNT(*) FROM chronicles WHERE status='published') chronicles",
+        "SELECT (SELECT COUNT(*) FROM villages WHERE status='published' AND name<>'曾用名') villages,(SELECT COUNT(*) FROM posts WHERE status='published' AND title NOT LIKE '%??%' AND content NOT LIKE '%??%' AND (slug NOT LIKE 'daily-%' OR (length(content) BETWEEN 600 AND 1000 AND cover_image<>''))) posts,(SELECT COUNT(*) FROM products WHERE status='active') products,(SELECT COUNT(*) FROM chronicles WHERE status='published') chronicles",
       ),
     );
   }
@@ -379,7 +388,7 @@ export async function api(
     if (q.get("slug")) {
       const p = await one(
         db,
-        "SELECT * FROM posts WHERE slug=? AND ((status='published' AND title NOT LIKE '%??%' AND content NOT LIKE '%??%' AND length(content) BETWEEN 1500 AND 3000 AND cover_image<>'') OR ?=1)",
+        "SELECT * FROM posts WHERE slug=? AND ((status='published' AND title NOT LIKE '%??%' AND content NOT LIKE '%??%' AND (slug NOT LIKE 'daily-%' OR (length(content) BETWEEN 600 AND 1000 AND cover_image<>''))) OR ?=1)",
         q.get("slug")!,
         user?.role === "admin" ? 1 : 0,
       );
@@ -387,7 +396,7 @@ export async function api(
     }
     const where = ["status=?"],
       args: (string | number)[] = [requested];
-    if (requested === "published") where.push("title NOT LIKE '%??%'", "content NOT LIKE '%??%'", "length(content) BETWEEN 1500 AND 3000", "cover_image<>''");
+    if (requested === "published") where.push("title NOT LIKE '%??%'", "content NOT LIKE '%??%'", "(slug NOT LIKE 'daily-%' OR (length(content) BETWEEN 600 AND 1000 AND cover_image<>''))");
     if (q.get("search")) {
       where.push("title LIKE ?");
       args.push("%" + q.get("search")!.slice(0, 80) + "%");
@@ -465,13 +474,15 @@ export async function api(
       throw new HttpError(400, "发布文章必须提供与滨州内容相关且来源可追溯的封面图");
     if (status === "published") {
       const plainLength = content.replace(/<[^>]*>/g, "").trim().length;
-      if (plainLength < 1500 || plainLength > 3000)
-        throw new HttpError(400, "发布文章正文须为1500至3000字");
+      if (slug.startsWith("daily-") && (plainLength < 600 || plainLength > 1000))
+        throw new HttpError(400, "每日文章正文须为600至1000字");
+      if (!slug.startsWith("daily-") && (plainLength < 1500 || plainLength > 3000))
+        throw new HttpError(400, "专题文章正文须为1500至3000字");
     }
     if (req.method === "POST" && status === "published" && await one(db, "SELECT id FROM posts WHERE title=? AND status='published'", title))
       throw new HttpError(409, "已有同标题文章，请更换主题或编辑原文");
     if (status === "published" && (req.method === "POST" || previous?.status !== "published")) {
-      const today = await one(db, "SELECT id FROM posts WHERE status='published' AND title NOT LIKE '%??%' AND content NOT LIKE '%??%' AND length(content) BETWEEN 1500 AND 3000 AND cover_image<>'' AND date(coalesce(published_at,created_at),'unixepoch','+8 hours')=date('now','+8 hours') LIMIT 1");
+      const today = await one(db, "SELECT id FROM posts WHERE status='published' AND title NOT LIKE '%??%' AND content NOT LIKE '%??%' AND (slug NOT LIKE 'daily-%' OR (length(content) BETWEEN 600 AND 1000 AND cover_image<>'')) AND date(coalesce(published_at,created_at),'unixepoch','+8 hours')=date('now','+8 hours') LIMIT 1");
       if (today) throw new HttpError(409, "北京时间今天已有公开文章，请保存草稿并在其他日期发布");
     }
     let p: Row | null;

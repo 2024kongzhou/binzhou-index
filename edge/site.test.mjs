@@ -147,6 +147,33 @@ await test("public pages render and unknown routes return 404", async () => {
     assert.equal((await request(p)).status, 200, p);
   assert.equal((await request("/not-found/")).status, 404);
 });
+await test("redirects stay relative and pages.dev returns to the canonical domain", async () => {
+  const admin = await request("/admin/");
+  assert.equal(admin.status, 303);
+  assert.equal(admin.headers.get("Location"), "/login/");
+  const trailingSlash = await request("/blog?from=check");
+  assert.equal(trailingSlash.status, 308);
+  assert.equal(trailingSlash.headers.get("Location"), "/blog/?from=check");
+  const home = await request("/");
+  assert.match(
+    home.headers.get("Strict-Transport-Security"),
+    /^max-age=31536000; includeSubDomains$/,
+  );
+  const favicon = await request("/favicon.ico");
+  assert.equal(favicon.status, 308);
+  assert.equal(favicon.headers.get("Location"), "/assets/mark.svg");
+  const direct = await worker.fetch(
+    new Request("https://binzhou-index.pages.dev/blog/daily-20261113/", {
+      headers: { Host: "binzhou-index.pages.dev" },
+    }),
+    env,
+  );
+  assert.equal(direct.status, 308);
+  assert.equal(
+    direct.headers.get("Location"),
+    "https://keyi.de5.net/blog/daily-20261113/",
+  );
+});
 await test("writes require admin and same origin; preview is read only", async () => {
   assert.equal(
     (await request("/api/posts", "POST", { title: "x" })).status,
@@ -194,10 +221,12 @@ await test("article detail shows previous and next navigation", async () => {
   const css = await (await request('/assets/site.css')).text();
   assert.match(css,/\.article-nav\s*\{[^}]*gap:\s*88px/s);
 });
-await test("published articles require 1500-3000 characters and a cover image", async () => {
+await test("daily articles require 600-1000 characters and a licensed-style cover", async () => {
   const short = await request("/api/posts", "POST", {title:"每日短文",slug:"daily-short",content:"太短",status:"published",coverImage:"/api/img/sample.jpg"}, token);
   assert.equal(short.status,400);
-  const long = "滨州".repeat(800);
+  const long = "滨州".repeat(350);
+  const tooLong = await request("/api/posts", "POST", {title:"每日长文",slug:"daily-long",content:"滨州".repeat(501),status:"published",coverImage:"/api/img/sample.jpg"}, token);
+  assert.equal(tooLong.status,400);
   const noCover = await request("/api/posts", "POST", {title:"每日无图",slug:"daily-no-cover",content:long,status:"published"}, token);
   assert.equal(noCover.status,400);
   const good = await request("/api/posts", "POST", {title:"每日合规文章",slug:"daily-valid",content:long,status:"published",coverImage:"/api/img/sample.jpg"}, token);
@@ -205,6 +234,8 @@ await test("published articles require 1500-3000 characters and a cover image", 
   assert.equal((await request("/api/posts", "POST", {title:"今日另一篇",slug:"daily-second",content:long,status:"published",coverImage:"/api/img/sample.jpg"}, token)).status,409);
   const shortRegular = await request("/api/posts", "POST", {title:"普通短文",slug:"regular-short",content:"滨州".repeat(400),status:"published",coverImage:"/api/img/sample.jpg"}, token);
   assert.equal(shortRegular.status,400);
+  const goodRegular = await request("/api/posts/new-article", "PUT", {title:"普通合规文章",content:"滨州".repeat(800),status:"published",coverImage:"/api/img/sample.jpg"}, token);
+  assert.equal(goodRegular.status,200);
 });
 await test("login preserves password whitespace and cookie is protected", async () => {
   const r = await request("/api/auth/login", "POST", {

@@ -13,7 +13,7 @@ class EditorialTests(unittest.TestCase):
         self.site = Mock()
         self.site.get_posts.return_value = []
         self.site.create_post.return_value = {'id': 1}
-        body = '滨州惠民县开展文明志愿服务。' * 180
+        body = '滨州惠民县开展文明志愿服务。' * 45
         self.proposal = {'eligible': True, 'category':'好人好事', 'subject':'惠民文明志愿服务',
                         'localityEvidence':'滨州惠民县', 'title':'滨州惠民志愿服务温暖邻里',
                         'content':body, 'excerpt':'服务邻里', 'imageSubject':'志愿服务',
@@ -26,7 +26,8 @@ class EditorialTests(unittest.TestCase):
                                     fetch_binzhouw=lambda:[], fetch_article=lambda u:body),
             call_sensenova=Mock(side_effect=[json.dumps(self.proposal), json.dumps({'supported':True,'distinct':True,'imageRelevant':True})]),
             generate_cover_image=Mock(return_value=(b'x'*3000,'image/png')),
-            find_commons_cover=Mock(return_value=None),
+            find_commons_cover=Mock(return_value=(b'x'*12000,'image/jpeg',
+                '摄影者：Test Photographer；来源：Wikimedia Commons；授权：CC BY-SA 4.0（https://creativecommons.org/licenses/by-sa/4.0/）；原图：https://commons.wikimedia.org/wiki/File:Test.jpg。')),
             upload_image_to_oracle=Mock(return_value='/api/img/test.png'), pushplus=Mock(return_value=True))
 
     def test_day_is_idempotent(self):
@@ -38,18 +39,22 @@ class EditorialTests(unittest.TestCase):
     def test_publication_persists_and_push_contains_cover(self):
         self.assertTrue(publish(self.hub)['ok'])
         published_content = self.site.create_post.call_args.kwargs['content']
-        self.assertGreaterEqual(len(published_content), 1500)
-        self.assertLessEqual(len(published_content), 3000)
+        self.assertGreaterEqual(len(published_content), 600)
+        self.assertLessEqual(len(published_content), 1000)
+        self.assertIs(self.site.create_post.call_args.kwargs['aiGenerated'], False)
+        self.assertIn('CC BY-SA 4.0', published_content)
+        self.hub.generate_cover_image.assert_not_called()
         self.assertEqual(len(json.loads((Path(self.tmp.name)/'editorial_ledger.json').read_text())),1)
         self.assertIn('<img ',self.hub.pushplus.call_args.args[1])
         publish(self.hub)
         self.site.create_post.assert_called_once()
         self.hub.pushplus.assert_called_once()
 
-    def test_image_failure_does_not_publish(self):
-        self.hub.generate_cover_image.side_effect=RuntimeError('offline')
-        with self.assertRaises(RuntimeError): publish(self.hub)
+    def test_no_licensed_real_photo_does_not_publish(self):
+        self.hub.find_commons_cover.return_value=None
+        self.assertFalse(publish(self.hub)['ok'])
         self.site.create_post.assert_not_called()
+        self.hub.generate_cover_image.assert_not_called()
         self.hub.pushplus.assert_not_called()
 
     def test_invalid_locality_does_not_publish(self):

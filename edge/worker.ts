@@ -10,6 +10,7 @@ import {
   writeGuard,
   body,
   limit,
+  redirect,
 } from "./core";
 import { page, shell } from "./views";
 import css from "./site.css";
@@ -17,6 +18,7 @@ import client from "./client.js?raw";
 import landscape from "./landscape.svg?raw";
 const security = {
   "X-Content-Type-Options": "nosniff",
+  "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
   "Referrer-Policy": "strict-origin-when-cross-origin",
   "X-Frame-Options": "DENY",
   "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
@@ -32,20 +34,25 @@ export default {
     let response: Response;
     const url = new URL(req.url);
     try {
-      if (url.pathname === "/assets/site.css")
+      const requestHost = req.headers.get("Host") || url.hostname;
+      if (requestHost === "binzhou-index.pages.dev")
+        response = redirect(
+          "https://keyi.de5.net" + url.pathname + url.search,
+          308,
+        );
+      else if (url.pathname === "/assets/site.css")
         response = asset(css, "text/css; charset=utf-8");
       else if (url.pathname === "/assets/site.js")
         response = asset(client, "text/javascript; charset=utf-8");
       else if (url.pathname === "/assets/landscape.svg")
         response = asset(landscape, "image/svg+xml");
-      else if (
-        url.pathname === "/assets/mark.svg" ||
-        url.pathname === "/favicon.ico"
-      )
+      else if (url.pathname === "/assets/mark.svg")
         response = asset(
           '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"><rect width="48" height="48" rx="8" fill="#234e45"/><text x="24" y="34" text-anchor="middle" font-size="32" font-family="serif" fill="#fff6dd">滨</text></svg>',
           "image/svg+xml",
         );
+      else if (url.pathname === "/favicon.ico")
+        response = redirect("/assets/mark.svg", 308);
       else if (url.pathname === "/robots.txt")
         response = asset(
           `User-agent: *\n${env.PREVIEW_READ_ONLY === "true" ? "Disallow: /" : "Allow: /\nDisallow: /admin/\nDisallow: /api/\nDisallow: /messages/\nSitemap: https://keyi.de5.net/sitemap.xml"}\n`,
@@ -169,7 +176,7 @@ export default {
           throw new HttpError(405, "不支持此操作");
         else if (!url.pathname.endsWith("/")) {
           url.pathname += "/";
-          response = Response.redirect(url.toString(), 308);
+          response = redirect(url.pathname + url.search, 308);
         } else response = await page(req, env, user);
       }
     } catch (e) {
@@ -201,6 +208,8 @@ export default {
       response,
     );
     for (const [k, v] of Object.entries(security)) out.headers.set(k, v);
+    const location = response.headers.get("Location");
+    if (location) out.headers.set("Location", location);
     if (env.PREVIEW_READ_ONLY === "true")
       out.headers.set("X-Robots-Tag", "noindex, nofollow");
     return out;
